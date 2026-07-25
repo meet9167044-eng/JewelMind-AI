@@ -215,12 +215,32 @@ This is a non-negotiable platform guarantee:
 
 In database terms: every query filters by `business_id`. A query that returns combined data from two different businesses is a critical correctness and privacy bug.
 
-### Upload Ownership
+### Shopkeeper Workflow
 
-When a jeweller uploads a CSV file, the system:
+```
+Login
+  ↓
+Upload Products
+  ↓
+Upload Purchases
+  ↓
+Upload Sales
+  ↓
+System Automatically Syncs Latest Metal Rates (Metal Rates Fetch Service)
+  ↓
+Dashboard
+  ↓
+AI Copilot
+```
+
+### Upload Ownership & Automated Metal Rates
+
+When a jeweller uploads data, the system:
 1. Verifies they are logged in (authentication).
 2. Verifies the business they selected belongs to them (authorization).
-3. Tags every row of the uploaded data with that business's `business_id` before saving it.
+3. Tags every row of the uploaded CSV data (**Products**, **Purchases**, **Sales**) with that business's `business_id` before saving it.
+
+*Note on Metal Rates*: Shopkeepers are never required to upload metal rates manually. The system's background **Metal Rates Fetch Service** periodically pulls live and historical commodity board rates (24K Gold, 22K Gold, Silver) from external APIs and stores them in PostgreSQL. Historical rates are retained indefinitely for valuation history, trend analysis, and what-if scenario simulations.
 
 This means the `business_id` is **never supplied by the CSV file itself** — it is assigned by the server based on the user's verified session. This eliminates the possibility of a rogue upload contaminating another business's data.
 

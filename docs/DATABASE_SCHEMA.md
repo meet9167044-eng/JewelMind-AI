@@ -146,7 +146,7 @@ Inventory outflows for a specific business. Price components are captured dynami
 ---
 
 ### Table 6: `metal_rates`
-Daily commodity reference rates. Each business maintains its own rate history (uploaded with their data), ensuring no cross-business rate conflicts.
+Daily commodity reference rates. Records are populated automatically by the background Metal Rates Fetch Service (fetching from external commodity APIs) and stored in PostgreSQL per business. Historical rates are retained indefinitely for **valuation history**, **trend analysis**, and **scenario simulation**.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -221,3 +221,4 @@ Because jewelry accounting can carry nuance, this schema's fields map to documen
 | (initial) | Created products, purchases, sales, metal_rates | Phase 0–1 minimal schema to unblock synthetic data + analytics work |
 | 2026-07-25 | Upgraded to production PostgreSQL DDL with types, constraints, indexes | Phase 1 documentation upgrade |
 | 2026-07-25 | Added `users` and `businesses` tables; added `business_id` FK to all core tables; updated metal_rates PK to composite `(business_id, rate_date)` | Multi-business SaaS architecture change |
+| 2026-07-26 | Replaced manual `metal_rates.csv` upload requirement with automated background Metal Rates Fetch Service | User experience & automated rate synchronization |

@@ -428,39 +428,48 @@ Build precious metal valuation metrics (Weighted Acquisition Rate, Valuation Exp
 - `backend/app/services/metal_service.py`
 - `backend/tests/test_metal.py`
 
-### Formulas Implemented (see ANALYTICS_FORMULAS.md Sections 4 & 5)
-- Weighted Acquisition Rate: $\text{WAR} = \frac{\sum \text{metal\_cost}}{\sum \text{net\_weight}}$
-- Valuation Exposure: $\text{Net Weight} \times (R_{\text{today}} \times \text{Purity} - \text{WAR})$
-- Scenario Simulation: Rate shift by $x\% \rightarrow$ recalculate valuation movement.
+### Files to Create
+- `backend/app/services/metal_service.py`
+- `backend/app/services/metal_rate_fetcher.py` (External Commodity API Integration)
+- `backend/app/services/scheduler.py` (APScheduler Background Job for Periodic Fetching)
+- `backend/tests/test_metal.py`
+
+### Formulas & Integration Implemented
+- **External Rate Sync**: Background scheduler periodically calls external commodity API, normalizes rates, and persists daily 24K, 22K, and silver rates into PostgreSQL (`metal_rates` table).
+- **Weighted Acquisition Rate**: $\text{WAR} = \frac{\sum \text{metal\_cost}}{\sum \text{net\_weight}}$
+- **Valuation Exposure**: $\text{Net Weight} \times (R_{\text{today}} \times \text{Purity} - \text{WAR})$
+- **Scenario Simulation**: Rate shift by $x\% \rightarrow$ recalculate valuation movement.
 
 ### Cursor Prompt Template
 ```text
-Read docs/ANALYTICS_FORMULAS.md (Sections 4 & 5), docs/API_SPEC.md (Sections 6 & 7), and docs/PROJECT_RULES.md (Rules 11-12).
+Read docs/ANALYTICS_FORMULAS.md (Sections 4 & 5), docs/API_SPEC.md (Sections 6, 7 & 10), and docs/PROJECT_RULES.md (Rules 11, 20, 21).
 
-Implement metal exposure and scenario simulation.
+Implement metal exposure, scenario simulation, and automatic metal rate fetching.
 
 Requirements:
-1. Implement calculate_metal_exposure(db, business_id, metal).
-2. Implement simulate_metal_rate_shift(db, business_id, metal, change_percent).
-3. All queries must filter by business_id. Metal rates are also business-scoped (the composite key is (business_id, rate_date)).
-4. Expose endpoints under /api/businesses/{business_id}/analytics/metal-exposure and /api/businesses/{business_id}/scenario/simulate-rate-shift.
-5. Write tests verifying July silver fall shows expected valuation exposure for business_id=1.
+1. Implement metal_rate_fetcher.py to fetch current Gold and Silver board rates from external commodity API and store in PostgreSQL (metal_rates table).
+2. Implement background scheduler service (scheduler.py using APScheduler) for periodic automated rate updates.
+3. Expose POST /api/system/metal-rates/refresh per API_SPEC.md.
+4. Implement calculate_metal_exposure(db, business_id, metal) and simulate_metal_rate_shift(db, business_id, metal, change_percent) querying stored DB rates only.
+5. All queries must filter by business_id.
+6. Write tests verifying July silver fall shows expected valuation exposure and confirming background fetcher updates metal_rates table cleanly.
 ```
 
 ### Verification Gate
 - Run `pytest backend/tests/test_metal.py`.
-- Verify silver valuation exposure calculation matches synthetic scenario.
-- Verify the endpoint returns different (or zero) exposure for a different business_id.
+- Verify metal rate fetcher pulls rates and stores them in PostgreSQL `metal_rates` table.
+- Verify silver valuation exposure calculation matches synthetic scenario using stored rates.
+- Verify analytics functions never invoke external API directly.
 
 ### Git Commit
-`feat: implement business-scoped metal exposure engine and scenario simulation`
+`feat: implement metal rate fetch service, background scheduler, metal exposure engine, and scenario simulation`
 
 ---
 
 ## Phase 12: Data Upload & Validation Pipeline
 
 ### Objective
-Build the CSV/Excel upload pipeline with validation, type checking, and a Data Quality Report. Every uploaded row is tagged with the `business_id` of the selected business — determined server-side, never from the file itself.
+Build the CSV/Excel upload pipeline for **Products**, **Purchases**, and **Sales** with validation, type checking, and a Data Quality Report. (Metal rates are handled automatically by the Phase 11 Metal Rate Fetch Service). Every uploaded row is tagged with the `business_id` of the selected business — determined server-side, never from the file itself.
 
 ### Files to Create
 - `backend/app/services/upload_service.py`
@@ -479,12 +488,12 @@ The upload service must:
 
 ### Cursor Prompt Template
 ```text
-Read docs/API_SPEC.md (Section 5), docs/DATABASE_SCHEMA.md, and docs/PROJECT_RULES.md (Rules 9, 11, 14).
+Read docs/API_SPEC.md (Section 5), docs/DATABASE_SCHEMA.md, and docs/PROJECT_RULES.md (Rules 9, 11, 14, 20).
 
-Implement the data upload pipeline.
+Implement the data upload pipeline for Products, Purchases, and Sales.
 
 Requirements:
-1. Expose POST /api/businesses/{business_id}/upload/{dataset_type} with get_owned_business dependency.
+1. Expose POST /api/businesses/{business_id}/upload/{dataset_type} for dataset_type in [products, purchases, sales]. (Shopkeeper does not upload metal_rates manually).
 2. Validate required columns, data types, and non-negative constraints.
 3. CRITICAL: Inject business_id into every row server-side before inserting. The CSV does NOT supply business_id.
 4. Return upload_id, rows_processed, and any validation warnings.
@@ -641,7 +650,7 @@ Perform end-to-end verification, finalize UI polish, run automated test suites, 
 3. Polish UI: typography, HSL color palette, dark mode, hover transitions.
 4. Execute story-driven demo flow:
    - **Step 0**: Register as Rajesh → Login → Create "Rajesh Jewellers" business.
-   - **Step 1**: Upload 4 CSV files → Review Data Quality Report.
+   - **Step 1**: Upload 3 CSV files (Products, Purchases, Sales) → System automatically synchronizes metal rates via background Metal Rates Fetch Service → Review Data Quality Report.
    - **Step 2**: Open Dashboard → See KPIs & June profit drop (-13.4%).
    - **Step 3**: Ask Copilot: *"Why did profit fall in June?"* → AI explains drivers → View Evidence modal.
    - **Step 4**: Ask Copilot: *"Where is my money stuck?"* → View Dead Stock list.

@@ -49,7 +49,9 @@ Register / Log In
        ↓
 Select or Create Business
        ↓
-Upload Business Data (Products, Purchases, Sales, Metal Rates)
+Upload Business Data (Products, Purchases, Sales)
+       ↓
+Automatic Metal Rates Service (fetches live & historical rates from external API into DB)
        ↓
 Dashboard (scoped to selected business)
        ↓
@@ -141,16 +143,18 @@ User poses a hypothetical (e.g., "what if silver falls 10%?"); system calculates
 ### 8. Insights / Action Center
 Proactive, rule-based insights generated automatically from analytics refreshes (e.g., ageing stock alerts, discount-rate spikes, stockout risk). Uses cautious language (review / investigate / consider / potential) rather than absolute recommendations.
 
-### 9. Data Upload
-CSV/Excel upload scoped to the currently selected business. Validates column schemas, data types, and constraints. Produces a Data Quality Report. Uploads are tagged with `business_id` — no cross-business data mixing is ever possible.
+### 9. Data Upload & Automated Metal Rates
+CSV/Excel upload scoped to the currently selected business for **Products**, **Purchases**, and **Sales**. Validates column schemas, data types, and constraints. Produces a Data Quality Report. Uploads are tagged with `business_id` — no cross-business data mixing is ever possible.
+
+*Note: Shopkeepers are never required to upload metal rates manually. The system includes an automated **Metal Rates Service** that periodically fetches Gold and Silver market rates from an external commodity API and stores them in PostgreSQL for historical valuation, trend analysis, and scenario simulation.*
 
 ## MVP Definition
 
 The project is MVP-complete when this end-to-end flow works:
 
 1. User registers, logs in, creates a business named "Rajesh Jewellers."
-2. User uploads four CSV files for that business.
-3. System validates and stores them, tagged to "Rajesh Jewellers."
+2. User uploads three CSV files (Products, Purchases, Sales) for that business.
+3. System automatically fetches latest Gold/Silver rates from external API and persists them into the `metal_rates` database table.
 4. Dashboard shows accurate metrics for that business only.
 5. User asks "Why did profit fall in June?" → system correctly identifies causes → AI explains them with evidence (all filtered to this business).
 6. User asks "Where is my money stuck?" → system shows slow/dead inventory for this business.
@@ -166,4 +170,4 @@ If yes — consider it. If it's billing, GST, blockchain, marketplace, or simila
 
 ## Demo Narrative (Reference)
 
-The final demo should be told as a story, not a feature tour: a jeweller ("Rajesh") logs in, creates his business, uploads his data, sees profit fell 13% but doesn't know why. He asks the Copilot, sees quantified drivers with evidence, asks where capital is stuck, sees ageing/dead stock, then runs a silver-price scenario. Closing line: *"Traditional systems tell Rajesh what happened. Jewellery BI Copilot helps him understand why it happened, where the risks are, and what deserves attention next — for his business, and his business alone."*
+The final demo should be told as a story, not a feature tour: a jeweller ("Rajesh") logs in, creates his business, uploads his 3 store datasets (Products, Purchases, Sales) while the system automatically fetches current metal rates, sees profit fell 13% but doesn't know why. He asks the Copilot, sees quantified drivers with evidence, asks where capital is stuck, sees ageing/dead stock, then runs a silver-price scenario. Closing line: *"Traditional systems tell Rajesh what happened. Jewellery BI Copilot helps him understand why it happened, where the risks are, and what deserves attention next — for his business, and his business alone."*

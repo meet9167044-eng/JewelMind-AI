@@ -6,7 +6,7 @@ A **multi-business SaaS platform** built specifically for retail jewellers. Each
 
 ## What It Does
 
-A retail jeweller logs in, selects their business, uploads their data (products, purchases, sales, metal rates), and can ask questions in plain English:
+A retail jeweller logs in, selects their business, uploads their store data (products, purchases, sales), while the system automatically fetches current metal rates, and can ask questions in plain English:
 
 - *"Why did my profit fall in June?"* — System decomposes the change into volume, discount, making-charge, and product-mix effects. AI explains each driver with evidence.
 - *"Where is my money stuck?"* — System classifies aged inventory, dead stock, and stockout risks.
@@ -32,7 +32,7 @@ User (registers once)
        ├── products   (business_id = 1)
        ├── purchases  (business_id = 1)
        ├── sales      (business_id = 1)
-       └── metal_rates (business_id = 1)
+       └── metal_rates (auto-fetched by background service)
   └── Business 2: "Mehta Silver Mart" (future)
        └── ... (completely independent data)
 ```

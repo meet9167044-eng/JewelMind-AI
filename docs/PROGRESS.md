@@ -66,6 +66,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - `PROJECT_PLAN.md` — rebuilt as 16-phase plan with Phases 5 & 6 (Auth + Business Management) inserted; updated all Cursor prompts with `business_id` requirements.
   - `PROGRESS.md` — updated from 14 to 16 phases; added decisions log entry.
 
+- [x] **Architecture upgrade (2026-07-26)**: Replaced manual `metal_rates.csv` upload requirement with automated background **Metal Rates Fetch Service** (external API integration + background scheduler + PostgreSQL rate storage) across all documentation files.
+
 ---
 
 ## Immediate Next Tasks (Phase 3)
@@ -86,3 +88,4 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | 2026-07-25 | Created `PROJECT_PLAN.md` as master 14-phase execution roadmap | Needed a structured, sequenced development plan before coding begins |
 | 2026-07-25 | All analytics code must be verified against synthetic dataset scenarios before connecting the AI Copilot layer | Prevent hallucinations; ensure deterministic verification gates |
 | 2026-07-25 | **Architecture Change: Upgraded to multi-business SaaS** | Each user must be able to create and manage their own jewellery business. All data, analytics, and AI Copilot queries must be scoped to a single business. No business may access another's data. This required adding `users` and `businesses` tables, `business_id` FK to all core tables, JWT auth, and two new implementation phases (Auth + Business Management). Total phases expanded from 14 to 16. |
+| 2026-07-26 | **Architecture Change: Automated Metal Rates Service** | Removed mandatory `metal_rates.csv` manual upload. Introduced background Metal Rates Fetch Service (external API fetch + background scheduler) to persist daily rates in PostgreSQL. Analytics and AI engines rely strictly on stored DB rates. |

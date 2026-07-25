@@ -1,18 +1,22 @@
 # AI_ARCHITECTURE.md
 
-## Core Design Principle: Non-Calculating AI
+## Core Design Principle: Non-Calculating & Isolated AI
 
-The AI layer in **JewelMind-AI** has **zero** permission to execute mathematical calculations or estimate business metrics.
+The AI layer in **JewelMind-AI** has **zero** permission to execute mathematical calculations, estimate business metrics, or invoke external APIs directly.
 
-Its role is to parse user intents, select and run deterministic tools that calculate metrics using Python and SQL, and translate the resulting data structures into readable explanation reports.
+Its role is to parse user intents, select and run deterministic internal tools that calculate metrics using Python and SQL against stored database tables, and translate the resulting data structures into readable explanation reports.
 
-**In the multi-business SaaS architecture, the AI Copilot is always bound to a single `business_id`. Every tool call is automatically scoped to the currently selected business. Cross-business queries by the AI are architecturally impossible — the tool signatures do not accept a `business_id` argument because the server injects it from the authenticated session.**
+**Key Architecture Guardrails**:
+- **Zero API Fetching**: AI never calls external commodity or market APIs. Background services and schedulers are solely responsible for syncing external metal rates into the PostgreSQL `metal_rates` table.
+- **Zero Calculation**: All financial calculations are executed by deterministic SQL/Pandas analytics functions.
+- **Stored Data Source**: Analytics engines and tool handlers query stored metal rates from PostgreSQL.
+- **Business Scoping**: In the multi-business SaaS architecture, the AI Copilot is always bound to a single `business_id`. Every tool call is automatically scoped to the currently selected business. Cross-business queries by the AI are architecturally impossible — the tool signatures do not accept a `business_id` argument because the server injects it from the authenticated session.
 
 ```
 ┌──────────────────────┐     ┌─────────────┐     ┌──────────────────────────┐
 │ User Query           │────►│  LLM Agent  │────►│ Analytics Engine         │
 │ "Why did GP fall?"   │     │ (Parses,    │     │ (Deterministic SQL       │
-│ [business_id=1]      │◄────│  selects    │◄────│  filtered by business_id)│
+│ [business_id=1]      │◄────│  selects    │◄────│  queries stored DB rates)│
 └──────────────────────┘     │  tool)      │     └──────────────────────────┘
                              └─────────────┘
 ```
@@ -155,6 +159,7 @@ CRITICAL RULES:
 5. VALUATION VS. LOSS: Always call inventory valuation drops "valuation exposure" or "unrealized paper adjustments." Never call them "realized losses" unless the items have been melted and refined.
 6. INCOMPLETE DATA: If the tool output is empty or missing expected parameters, say: "I do not have access to the dataset required to evaluate this question for {business_name}."
 7. NEVER REFERENCE OTHER BUSINESSES. You are advising only the owner of {business_name}. Never mention or compare data from any other business.
+8. NO EXTERNAL API CALLS. Never attempt to call external commodity APIs directly. Rely exclusively on stored database tool outputs provided by background rate services.
 ```
 
 ---

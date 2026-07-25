@@ -26,11 +26,13 @@ These rules are specific to the multi-business SaaS architecture introduced afte
 15. **The AI Copilot must only invoke analytics tools within the context of the current `business_id`.** Cross-business tool calls are forbidden.
 16. **No API endpoint may return data from multiple businesses in a single response** unless it is the Business List endpoint (which returns only the businesses belonging to the authenticated user).
 
-## Authentication Rules
+## Authentication & Metal Rates Service Rules
 
 17. All API routes except `/health` and auth routes (`/auth/register`, `/auth/login`) require a valid JWT token.
 18. JWT tokens encode the `user_id`. `business_id` is not stored in the JWT — it is passed per-request and validated server-side against the user's ownership.
 19. Authentication must be built before any analytics endpoint is exposed.
+20. **Metal rates must be automatically updated by a background Metal Rates Fetch Service via external commodity APIs.** Shopkeepers are never required to upload `metal_rates.csv` manually.
+21. **Analytics and AI Copilot must always query stored rates from the PostgreSQL `metal_rates` table.** They must never invoke external APIs directly during calculations or query resolution.
 
 ## Tech Stack Discipline
 

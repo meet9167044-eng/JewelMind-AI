@@ -131,7 +131,7 @@ These endpoints process CSV/Excel files, validate contents, and persist records 
 ### POST `/api/businesses/{business_id}/upload/{dataset_type}`
 *   **Path Parameters**:
     - `business_id` — Server verifies authenticated user owns this business.
-    - `dataset_type` — Enum: `products`, `purchases`, `sales`, `metal-rates`
+    - `dataset_type` — Enum: `products`, `purchases`, `sales` (metal rates are fetched automatically by the background service)
 *   **Request Body**: Multipart form data with `file` key containing the CSV/Excel file.
 *   **Response (200 OK)**:
     ```json
@@ -385,7 +385,36 @@ Sends the user's natural language question to the LLM agent. The Copilot operate
 
 ---
 
-## 10. Explicitly Deferred
+## 10. System & Background Service Endpoints
+
+These internal endpoints are invoked by background schedulers (e.g., APScheduler / Celery / Cron) or system admin tasks to synchronize reference data.
+
+### POST `/api/system/metal-rates/refresh`
+Triggers the Metal Rates Fetch Service to pull current Gold (24K, 22K) and Silver board rates from external commodity APIs and persist them into PostgreSQL (`metal_rates` table).
+*   **Request Parameters (Optional)**:
+    ```json
+    {
+      "business_id": 1,
+      "force_refresh": false
+    }
+    ```
+*   **Response (200 OK)**:
+    ```json
+    {
+      "status": "success",
+      "rate_date": "2026-07-26",
+      "rates_updated": {
+        "gold_24k": 7250.00,
+        "gold_22k": 6645.00,
+        "silver": 84.50
+      },
+      "source": "External Commodity API"
+    }
+    ```
+
+---
+
+## 11. Explicitly Deferred
 
 - Any endpoint related to billing, GST, payroll, CRM, or other out-of-scope functionality (see PROJECT_DEFINITION.md).
 - ML-backed endpoints (anomaly detection, forecasting) — deferred to Phase 16+, to be documented here once actually planned in detail.
@@ -400,3 +429,4 @@ Sends the user's natural language question to the LLM agent. The Copilot operate
 | (initial) | Drafted planned endpoint list aligned to 12-week roadmap; nothing implemented yet |
 | 2026-07-25 | Added Pydantic JSON schemas for all endpoints |
 | 2026-07-25 | Restructured all business-data endpoints under `/api/businesses/{business_id}/` prefix; added auth, business management, and ownership validation |
+| 2026-07-26 | Removed `metal-rates` manual upload dataset type; added system route `POST /api/system/metal-rates/refresh` for background metal rate fetching |
