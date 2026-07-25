@@ -49,9 +49,13 @@ Register / Log In
        ↓
 Select or Create Business
        ↓
-Upload Business Data (Products, Purchases, Sales)
+Upload Products CSV
        ↓
-Automatic Metal Rates Service (fetches live & historical rates from external API into DB)
+Upload Purchases CSV
+       ↓
+Upload Sales CSV
+       ↓
+System Automatically Keeps Metal Rates Updated (Background Scheduler)
        ↓
 Dashboard (scoped to selected business)
        ↓
@@ -146,15 +150,15 @@ Proactive, rule-based insights generated automatically from analytics refreshes 
 ### 9. Data Upload & Automated Metal Rates
 CSV/Excel upload scoped to the currently selected business for **Products**, **Purchases**, and **Sales**. Validates column schemas, data types, and constraints. Produces a Data Quality Report. Uploads are tagged with `business_id` — no cross-business data mixing is ever possible.
 
-*Note: Shopkeepers are never required to upload metal rates manually. The system includes an automated **Metal Rates Service** that periodically fetches Gold and Silver market rates from an external commodity API and stores them in PostgreSQL for historical valuation, trend analysis, and scenario simulation.*
+*Note on Metal Rates*: Shopkeepers are never required to upload metal rates manually. The system includes an automated **Metal Rates Service** driven by a background scheduler that periodically fetches Gold and Silver market rates from a trusted external commodity API and stores them in the global `metal_rates` table in MySQL. Historical `metal_rates.csv` is used ONLY for local development, testing, synthetic data generation, and demo database seeding. Production uses the automatic Metal Rate Fetch Service. Historical rates are retained indefinitely in MySQL for **valuation history**, **trend analysis**, and **scenario simulation**. If the external API is ever unavailable, the system logs the failure and continues using the latest stored rates without interrupting analytics or AI functionality.
 
 ## MVP Definition
 
 The project is MVP-complete when this end-to-end flow works:
 
 1. User registers, logs in, creates a business named "Rajesh Jewellers."
-2. User uploads three CSV files (Products, Purchases, Sales) for that business.
-3. System automatically fetches latest Gold/Silver rates from external API and persists them into the `metal_rates` database table.
+2. User uploads three CSV files: `Products.csv`, `Purchases.csv`, and `Sales.csv` for that business.
+3. System background scheduler automatically fetches and validates latest Gold/Silver rates from external API and persists them into the global `metal_rates` database table.
 4. Dashboard shows accurate metrics for that business only.
 5. User asks "Why did profit fall in June?" → system correctly identifies causes → AI explains them with evidence (all filtered to this business).
 6. User asks "Where is my money stuck?" → system shows slow/dead inventory for this business.

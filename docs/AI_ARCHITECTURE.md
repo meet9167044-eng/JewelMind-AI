@@ -7,10 +7,12 @@ The AI layer in **JewelMind-AI** has **zero** permission to execute mathematical
 Its role is to parse user intents, select and run deterministic internal tools that calculate metrics using Python and SQL against stored database tables, and translate the resulting data structures into readable explanation reports.
 
 **Key Architecture Guardrails**:
-- **Zero API Fetching**: AI never calls external commodity or market APIs. Background services and schedulers are solely responsible for syncing external metal rates into the PostgreSQL `metal_rates` table.
+- **Zero API Fetching**: AI never calls external commodity or market APIs. The **Metal Rate Fetch Service** is the ONLY component allowed to communicate with external metal-rate APIs.
+- **Zero External Network Calls in AI/Analytics**: Neither the AI Copilot nor the Analytics Engine make external network calls.
 - **Zero Calculation**: All financial calculations are executed by deterministic SQL/Pandas analytics functions.
-- **Stored Data Source**: Analytics engines and tool handlers query stored metal rates from PostgreSQL.
-- **Business Scoping**: In the multi-business SaaS architecture, the AI Copilot is always bound to a single `business_id`. Every tool call is automatically scoped to the currently selected business. Cross-business queries by the AI are architecturally impossible — the tool signatures do not accept a `business_id` argument because the server injects it from the authenticated session.
+- **Stored Data Source**: Analytics engines and tool handlers query stored metal rates from the MySQL database (`metal_rates` table).
+- **Business Scoping**: In the multi-business SaaS architecture (implemented in Phase 14), the AI Copilot is always bound to a single `business_id`. Every tool call is automatically scoped to the currently selected business. Cross-business queries by the AI are architecturally impossible — the tool signatures do not accept a `business_id` argument because the server injects it from the authenticated session.
+- **Environment Configuration**: LLM credentials and endpoint configuration are loaded via `LLM_API_KEY` per [PROJECT_PLAN.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_PLAN.md).
 
 ```
 ┌──────────────────────┐     ┌─────────────┐     ┌──────────────────────────┐

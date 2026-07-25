@@ -385,32 +385,18 @@ Sends the user's natural language question to the LLM agent. The Copilot operate
 
 ---
 
-## 10. System & Background Service Endpoints
+## 10. Background Scheduler & Metal Rates Service
 
-These internal endpoints are invoked by background schedulers (e.g., APScheduler / Celery / Cron) or system admin tasks to synchronize reference data.
+Metal rate synchronization is managed strictly as an internal background process (e.g., using an in-process APScheduler task inside FastAPI). No public API endpoints are exposed for manual rate fetching.
 
-### POST `/api/system/metal-rates/refresh`
-Triggers the Metal Rates Fetch Service to pull current Gold (24K, 22K) and Silver board rates from external commodity APIs and persist them into PostgreSQL (`metal_rates` table).
-*   **Request Parameters (Optional)**:
-    ```json
-    {
-      "business_id": 1,
-      "force_refresh": false
-    }
-    ```
-*   **Response (200 OK)**:
-    ```json
-    {
-      "status": "success",
-      "rate_date": "2026-07-26",
-      "rates_updated": {
-        "gold_24k": 7250.00,
-        "gold_22k": 6645.00,
-        "silver": 84.50
-      },
-      "source": "External Commodity API"
-    }
-    ```
+### Background Task Execution Flow
+1. **Schedule**: Triggers periodically (e.g., daily at market open).
+2. **External Fetch & Validation**: Connects to a trusted external commodity API, parses Gold (24K, 22K) and Silver board rates, and validates non-negative bounds.
+3. **Database Insertion**: Upserts rates into the global `metal_rates` table (`rate_date DATE PRIMARY KEY`).
+4. **Fail-Safe Fallback**: If the external API is offline or returns an error:
+   - Logs the failure detail with timestamp.
+   - Falls back to the latest stored rate record in MySQL.
+   - Never interrupts user requests, analytics computations, or AI Copilot interactions.
 
 ---
 
@@ -426,7 +412,8 @@ Triggers the Metal Rates Fetch Service to pull current Gold (24K, 22K) and Silve
 
 | Date | Change |
 |---|---|
-| (initial) | Drafted planned endpoint list aligned to 12-week roadmap; nothing implemented yet |
+| (initial) | Drafted planned endpoint list aligned to 16-phase master execution plan; nothing implemented yet |
 | 2026-07-25 | Added Pydantic JSON schemas for all endpoints |
 | 2026-07-25 | Restructured all business-data endpoints under `/api/businesses/{business_id}/` prefix; added auth, business management, and ownership validation |
-| 2026-07-26 | Removed `metal-rates` manual upload dataset type; added system route `POST /api/system/metal-rates/refresh` for background metal rate fetching |
+| 2026-07-26 | Removed `metal-rates` manual upload dataset type; added background Metal Rates Fetch Service execution flow |
+| 2026-07-26 | Standardized database stack references to MySQL (v8.0+) |

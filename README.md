@@ -31,14 +31,15 @@ User (registers once)
   └── Business 1: "Rajesh Jewellers"
        ├── products   (business_id = 1)
        ├── purchases  (business_id = 1)
-       ├── sales      (business_id = 1)
-       └── metal_rates (auto-fetched by background service)
-  └── Business 2: "Mehta Silver Mart" (future)
-       └── ... (completely independent data)
+       └── sales      (business_id = 1)
+
+Global Reference Data (Shared):
+  └── metal_rates (PK: rate_date, auto-fetched by background scheduler)
 ```
 
-- Every core table includes a `business_id` foreign key.
-- Every analytics query is filtered by `business_id`.
+- Every store transaction table (`products`, `purchases`, `sales`) includes a `business_id` foreign key.
+- `metal_rates` is a global market reference table shared across all businesses (`rate_date DATE PRIMARY KEY`).
+- Every analytics query for store transactions is filtered by `business_id`.
 - `business_id` is resolved server-side from the JWT session — never trusted from the frontend.
 
 ---
@@ -48,7 +49,7 @@ User (registers once)
 *   **Frontend**: Next.js, TypeScript, Tailwind CSS, shadcn/ui, Recharts
 *   **Backend**: FastAPI (Python), SQLAlchemy ORM, Alembic migrations
 *   **Auth**: JWT (python-jose), bcrypt password hashing
-*   **Database**: PostgreSQL
+*   **Database**: MySQL (v8.0+) with PyMySQL driver
 *   **Data Analysis**: Pandas, NumPy
 *   **Testing**: pytest
 

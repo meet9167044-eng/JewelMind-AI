@@ -6,9 +6,10 @@ This document defines the schema for the **JewelMind-AI** multi-business SaaS pl
 
 ## Database Technology
 
-*   **Database**: PostgreSQL (v14+)
-*   **Access Layer**: SQLAlchemy ORM (v2.0+) using declarative mapping
+*   **Database**: MySQL (v8.0+)
+*   **Access Layer**: SQLAlchemy ORM (v2.0+) using declarative mapping with `PyMySQL` driver
 *   **Migrations**: Alembic
+*   **Environment Configuration**: Credentials loaded via system environment variables (`MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`) per [PROJECT_PLAN.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_PLAN.md).
 
 ---
 
@@ -47,8 +48,8 @@ This document defines the schema for the **JewelMind-AI** multi-business SaaS pl
 
 ┌────────────────────────────┐
 │        metal_rates         │
+│  (Global Reference Table)  │
 ├────────────────────────────┤
-│ FK business_id (INT)       │◄── (Composite PK: business_id + rate_date)
 │ PK rate_date (DATE)        │
 │    gold_24k (DECIMAL)      │
 │    gold_22k (DECIMAL)      │
@@ -65,12 +66,12 @@ Stores registered user accounts. Authentication is handled by hashing passwords 
 
 | Column | Type | Notes |
 |---|---|---|
-| user_id | SERIAL PRIMARY KEY | Auto-incremented |
+| user_id | INT AUTO_INCREMENT PRIMARY KEY | Auto-incremented primary key |
 | email | VARCHAR(255) UNIQUE NOT NULL | Login identity |
 | password_hash | VARCHAR(512) NOT NULL | bcrypt hash; never store plaintext |
 | full_name | VARCHAR(255) NOT NULL | Display name |
-| created_at | TIMESTAMP WITH TIME ZONE | Auto-set on insert |
-| updated_at | TIMESTAMP WITH TIME ZONE | Auto-updated |
+| created_at | DATETIME | Auto-set on insert |
+| updated_at | DATETIME | Auto-updated |
 
 ---
 
@@ -79,14 +80,14 @@ Every registered user may own one or more named jewellery businesses. This table
 
 | Column | Type | Notes |
 |---|---|---|
-| business_id | SERIAL PRIMARY KEY | Multi-tenancy anchor key |
+| business_id | INT AUTO_INCREMENT PRIMARY KEY | Multi-tenancy anchor key |
 | owner_user_id | INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE | Who owns this business |
 | business_name | VARCHAR(255) NOT NULL | e.g., "Rajesh Jewellers" |
 | owner_name | VARCHAR(255) | Contact name within the business |
 | email | VARCHAR(255) | Business contact email |
 | phone | VARCHAR(50) | Business contact phone |
-| created_at | TIMESTAMP WITH TIME ZONE | Auto-set on insert |
-| updated_at | TIMESTAMP WITH TIME ZONE | Auto-updated |
+| created_at | DATETIME | Auto-set on insert |
+| updated_at | DATETIME | Auto-updated |
 
 ---
 
@@ -95,15 +96,15 @@ Master catalogue for each jewellery item belonging to a specific business.
 
 | Column | Type | Notes |
 |---|---|---|
-| product_id | SERIAL PRIMARY KEY | |
+| product_id | INT AUTO_INCREMENT PRIMARY KEY | |
 | business_id | INT NOT NULL REFERENCES businesses(business_id) ON DELETE CASCADE | **Data isolation key** |
 | sku | VARCHAR(100) NOT NULL | Unique *per business* (not globally) |
 | product_name | VARCHAR(255) NOT NULL | |
 | category | VARCHAR(100) NOT NULL | Enum: chain, necklace, payal, coin, utensil, ring, bangle, earring |
 | metal | VARCHAR(50) NOT NULL | Enum: gold, silver |
 | purity | VARCHAR(50) NOT NULL | e.g., 22K, 24K, 18K, 925 |
-| gross_weight | NUMERIC(10, 4) NOT NULL | Total piece weight in grams |
-| net_weight | NUMERIC(10, 4) NOT NULL | Metal-only weight in grams |
+| gross_weight | DECIMAL(10, 4) NOT NULL | Total piece weight in grams |
+| net_weight | DECIMAL(10, 4) NOT NULL | Metal-only weight in grams |
 
 > Unique constraint: `(business_id, sku)` — the same SKU may exist in different businesses.
 
@@ -114,16 +115,16 @@ Inventory inflows for a specific business.
 
 | Column | Type | Notes |
 |---|---|---|
-| purchase_id | SERIAL PRIMARY KEY | |
+| purchase_id | INT AUTO_INCREMENT PRIMARY KEY | |
 | business_id | INT NOT NULL REFERENCES businesses(business_id) ON DELETE CASCADE | **Data isolation key** |
 | product_id | INT NOT NULL REFERENCES products(product_id) ON DELETE CASCADE | |
-| purchase_date | TIMESTAMP WITH TIME ZONE NOT NULL | |
+| purchase_date | DATETIME NOT NULL | Transaction timestamp |
 | quantity | INT NOT NULL | |
-| weight | NUMERIC(10, 4) NOT NULL | |
-| metal_rate | NUMERIC(12, 2) NOT NULL | Rate per gram at acquisition time |
-| metal_cost | NUMERIC(12, 2) NOT NULL | |
-| making_cost | NUMERIC(12, 2) NOT NULL | Labor paid to supplier/karigar |
-| total_cost | NUMERIC(12, 2) NOT NULL | metal_cost + making_cost |
+| weight | DECIMAL(10, 4) NOT NULL | |
+| metal_rate | DECIMAL(12, 2) NOT NULL | Rate per gram at acquisition time |
+| metal_cost | DECIMAL(12, 2) NOT NULL | |
+| making_cost | DECIMAL(12, 2) NOT NULL | Labor paid to supplier/karigar |
+| total_cost | DECIMAL(12, 2) NOT NULL | metal_cost + making_cost |
 
 ---
 
@@ -132,31 +133,30 @@ Inventory outflows for a specific business. Price components are captured dynami
 
 | Column | Type | Notes |
 |---|---|---|
-| sale_id | SERIAL PRIMARY KEY | |
+| sale_id | INT AUTO_INCREMENT PRIMARY KEY | |
 | business_id | INT NOT NULL REFERENCES businesses(business_id) ON DELETE CASCADE | **Data isolation key** |
 | product_id | INT NOT NULL REFERENCES products(product_id) ON DELETE CASCADE | |
-| sale_date | TIMESTAMP WITH TIME ZONE NOT NULL | |
+| sale_date | DATETIME NOT NULL | Transaction timestamp |
 | quantity | INT NOT NULL | |
-| weight | NUMERIC(10, 4) NOT NULL | |
-| selling_price | NUMERIC(12, 2) NOT NULL | Gross price before discount |
-| making_charge | NUMERIC(12, 2) NOT NULL | Labor billed to customer |
-| discount | NUMERIC(12, 2) NOT NULL DEFAULT 0.00 | Deducted from selling price |
-| cost_basis | NUMERIC(12, 2) NOT NULL | Derived from purchases.total_cost for accurate GP |
+| weight | DECIMAL(10, 4) NOT NULL | |
+| selling_price | DECIMAL(12, 2) NOT NULL | Gross price before discount |
+| making_charge | DECIMAL(12, 2) NOT NULL | Labor billed to customer |
+| discount | DECIMAL(12, 2) NOT NULL DEFAULT 0.00 | Deducted from selling price |
+| cost_basis | DECIMAL(12, 2) NOT NULL | Derived from purchases.total_cost for accurate GP |
 
 ---
 
 ### Table 6: `metal_rates`
-Daily commodity reference rates. Records are populated automatically by the background Metal Rates Fetch Service (fetching from external commodity APIs) and stored in PostgreSQL per business. Historical rates are retained indefinitely for **valuation history**, **trend analysis**, and **scenario simulation**.
+Global commodity reference rates. Gold and Silver market rates are global reference data shared by all businesses on the platform. Records are populated automatically by the background Metal Rates Fetch Service (fetching and validating rates from a trusted external API) and stored in MySQL. Historical rates are retained indefinitely for **valuation history**, **trend analysis**, and **scenario simulation**.
 
 | Column | Type | Notes |
 |---|---|---|
-| business_id | INT NOT NULL REFERENCES businesses(business_id) ON DELETE CASCADE | **Data isolation key** |
-| rate_date | DATE NOT NULL | |
-| gold_24k | NUMERIC(12, 2) NOT NULL | |
-| gold_22k | NUMERIC(12, 2) NOT NULL | |
-| silver | NUMERIC(12, 2) NOT NULL | |
+| rate_date | DATE PRIMARY KEY | Global commodity rate date |
+| gold_24k | DECIMAL(12, 2) NOT NULL | Rate per gram in INR |
+| gold_22k | DECIMAL(12, 2) NOT NULL | Rate per gram in INR |
+| silver | DECIMAL(12, 2) NOT NULL | Rate per gram in INR |
 
-> Primary Key: `(business_id, rate_date)` — composite key.
+> Primary Key: `rate_date` (DATE) — Global reference table shared across all businesses (no `business_id`).
 
 ---
 
@@ -167,14 +167,16 @@ users (1) ──────────── (many) businesses
 businesses (1) ──────── (many) products
 businesses (1) ──────── (many) purchases
 businesses (1) ──────── (many) sales
-businesses (1) ──────── (many) metal_rates
 products (1) ──────────── (many) purchases
 products (1) ──────────── (many) sales
+
+-- Global Reference Data --
+metal_rates (standalone table, Primary Key: rate_date)
 ```
 
 **SKU Uniqueness**: `(business_id, sku)` — unique per business, not globally.
 
-**Rate Lookup**: When joining `sales` to `metal_rates` for valuation, always filter by both `business_id` AND `rate_date`.
+**Rate Lookup**: When joining `sales` or `purchases` to `metal_rates` for valuation, match on `DATE(sale_date) = rate_date`. Since `metal_rates` is a global market reference table, `business_id` is not present in `metal_rates`.
 
 ---
 
@@ -190,7 +192,7 @@ CREATE INDEX idx_products_metal_category ON products(business_id, metal, categor
 CREATE INDEX idx_purchases_business_date ON purchases(business_id, purchase_date);
 CREATE INDEX idx_sales_business_date ON sales(business_id, sale_date);
 CREATE INDEX idx_sales_business_product ON sales(business_id, product_id);
-CREATE INDEX idx_metal_rates_business_date ON metal_rates(business_id, rate_date);
+CREATE INDEX idx_metal_rates_date ON metal_rates(rate_date);
 ```
 
 ---
@@ -219,6 +221,7 @@ Because jewelry accounting can carry nuance, this schema's fields map to documen
 | Date | Change | Reason |
 |---|---|---|
 | (initial) | Created products, purchases, sales, metal_rates | Phase 0–1 minimal schema to unblock synthetic data + analytics work |
-| 2026-07-25 | Upgraded to production PostgreSQL DDL with types, constraints, indexes | Phase 1 documentation upgrade |
-| 2026-07-25 | Added `users` and `businesses` tables; added `business_id` FK to all core tables; updated metal_rates PK to composite `(business_id, rate_date)` | Multi-business SaaS architecture change |
+| 2026-07-25 | Upgraded database DDL with types, constraints, indexes | Phase 1 documentation upgrade |
+| 2026-07-25 | Added `users` and `businesses` tables; added `business_id` FK to all core tables | Multi-business SaaS architecture change |
 | 2026-07-26 | Replaced manual `metal_rates.csv` upload requirement with automated background Metal Rates Fetch Service | User experience & automated rate synchronization |
+| 2026-07-26 | Standardized entire project database stack to MySQL (v8.0+) | Infrastructure standardization |

@@ -11,7 +11,7 @@ It organizes development into **16 controlled, bite-sized phases**. Each phase s
 - Recommended Git commit messages
 
 > [!IMPORTANT]
-> **Architecture Change (2026-07-25)**: This project is a **multi-business SaaS platform**. Every user can register and create one or more named jewellery businesses. All data, analytics, and AI Copilot queries are strictly scoped to a single `business_id`. Cross-business data access is a critical bug. Two new phases (Phase 4: Authentication and Phase 5: Business Management) have been added before the FastAPI/data phases. All subsequent phase numbers have shifted accordingly. See [PROJECT_DEFINITION.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_DEFINITION.md) and [DATABASE_SCHEMA.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/DATABASE_SCHEMA.md) for the full architectural rationale.
+> **Architecture Change (2026-07-25)**: This project is a **multi-business SaaS platform**. Every user can register and create one or more named jewellery businesses. All data, analytics, and AI Copilot queries are strictly scoped to a single `business_id`. Cross-business data access is a critical bug. Two new phases (Phase 5: Authentication and Phase 6: Business Management) have been inserted before the core database models and analytics phases. All subsequent phase numbers have shifted accordingly. See [PROJECT_DEFINITION.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_DEFINITION.md) and [DATABASE_SCHEMA.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/DATABASE_SCHEMA.md) for the full architectural rationale.
 
 ---
 
@@ -24,13 +24,33 @@ It organizes development into **16 controlled, bite-sized phases**. Each phase s
 │  AUTH ──► BUSINESS SELECT ──► DATA ──► MATH ──► ANALYSIS ──► AI         │
 │  (JWT)    (business_id)       (SQL)    (Pandas)  (Engine)     (Copilot)  │
 └──────────────────────────────────────────────────────────────────────────┘
+
+Metal Rates Ingestion Flow (Automated & Fail-Safe):
+External Metal Rate API ──► Background Scheduler ──► Validation ──► metal_rates table (Global PK: rate_date) ──► Analytics Engine ──► AI Copilot
 ```
 
 > [!IMPORTANT]
 > **Core Architectural Rules**:
 > 1. Financial calculations must **never** be performed by the LLM. Python and SQL calculate 100% of all financial metrics deterministically.
-> 2. Every analytics query must be filtered by `business_id`. A query that crosses business boundaries is a data-isolation bug.
-> 3. `business_id` must always be resolved server-side from the JWT session. Never trust it from the frontend directly.
+> 2. Every analytics query for store transactions must be filtered by `business_id`.
+> 3. `metal_rates` is a **global reference table** shared across all businesses (`rate_date DATE PRIMARY KEY`) — it does NOT contain `business_id`.
+> 4. Analytics and AI Copilot **never** invoke external APIs directly. They query stored DB rates. If the external rate API is offline, the background scheduler logs the failure and falls back to the latest stored rate without interrupting analytics or AI.
+
+### System Environment Variables Reference
+
+| Variable | Description | Component |
+|---|---|---|
+| `MYSQL_HOST` | Hostname of the MySQL database server | Backend / Database |
+| `MYSQL_PORT` | Port for the MySQL database connection (default `3306`) | Backend / Database |
+| `MYSQL_DATABASE` | MySQL database name (`jewelmind_db`) | Backend / Database |
+| `MYSQL_USER` | MySQL database username | Backend / Database |
+| `MYSQL_PASSWORD` | MySQL database user password | Backend / Database |
+| `JWT_SECRET_KEY` | Secret key used for signing and verifying JWT tokens | Authentication |
+| `METAL_RATE_API_PROVIDER` | Name of external metal rates provider (e.g., `GoldAPI`, `MetalsAPI`) | Metal Rate Fetch Service |
+| `METAL_RATE_API_URL` | Base endpoint URL for the external metal rates provider API | Metal Rate Fetch Service |
+| `METAL_RATE_API_KEY` | API authentication key for fetching external metal rates | Metal Rate Fetch Service |
+| `METAL_RATE_REFRESH_INTERVAL` | Background scheduler refresh interval in seconds | Background Scheduler |
+| `LLM_API_KEY` | Authentication key for LLM service calls (AI Copilot tool execution) | AI Copilot |
 
 ---
 
@@ -135,10 +155,10 @@ Perform a manual mathematical trace of a sample product through purchase and sal
 ## Phase 4: FastAPI Infrastructure Setup
 
 ### Objective
-Initialize the FastAPI application structure, configure PostgreSQL connection via SQLAlchemy, and set up Alembic migrations. No models, routes, or business logic yet — just the skeleton.
+Initialize the FastAPI application structure, configure MySQL connection via SQLAlchemy 2.0 and PyMySQL, and set up Alembic migrations. No models, routes, or business logic yet — just the skeleton.
 
 ### Files to Create
-- `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, psycopg2-binary, alembic, pydantic, python-jose, passlib, bcrypt, pandas, pytest)
+- `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, pymysql, alembic, pydantic, python-jose, passlib, bcrypt, pandas, pytest)
 - `backend/app/main.py`
 - `backend/app/database.py`
 - `backend/app/config.py`
@@ -151,8 +171,8 @@ Read docs/API_SPEC.md and docs/PROJECT_RULES.md.
 Initialize the FastAPI backend infrastructure inside backend/.
 
 Requirements:
-1. Create requirements.txt with FastAPI, SQLAlchemy, Alembic, psycopg2-binary, pandas, pydantic, python-jose, passlib[bcrypt], and pytest.
-2. Setup database.py connecting to PostgreSQL using SQLAlchemy 2.0 async/sync style.
+1. Create requirements.txt with FastAPI, SQLAlchemy, Alembic, PyMySQL, pandas, pydantic, python-jose, passlib[bcrypt], and pytest.
+2. Setup database.py connecting to MySQL using SQLAlchemy 2.0 async/sync style.
 3. Create main.py with CORS middleware and GET /health endpoint.
 4. Setup Alembic configuration.
 5. Do NOT create database models, routes, or business logic yet.
@@ -164,7 +184,7 @@ Requirements:
 - Access `http://localhost:8000/docs` → verify Swagger UI loads.
 
 ### Git Commit
-`feat: setup FastAPI backend infrastructure and PostgreSQL database connection`
+`feat: setup FastAPI backend infrastructure and MySQL database connection`
 
 ---
 
@@ -259,45 +279,47 @@ Requirements:
 ### Objective
 Define SQLAlchemy ORM models for all business-data tables — all including `business_id` — run Alembic migrations, and seed the Phase 2 synthetic datasets into a demo business.
 
+### Environment Distinction: Development vs. Production Seeding
+> [!IMPORTANT]
+> - **Development / Testing**: Historical `metal_rates.csv` is used **ONLY** for local development, testing, synthetic data generation, and seeding demo historical charts.
+> - **Production**: The production application **NEVER** relies on `metal_rates.csv`. Historical and daily metal rates are fetched, validated, and maintained automatically by the **Metal Rate Fetch Service**; no manual CSV upload is required.
+
 ### Files to Create
 - `backend/app/models/product.py` (with business_id FK)
 - `backend/app/models/purchase.py` (with business_id FK)
 - `backend/app/models/sale.py` (with business_id FK)
-- `backend/app/models/metal_rate.py` (with business_id FK; composite PK)
-- `backend/scripts/seed_db.py` (creates demo user + demo business, tags all CSV rows to business_id=1)
+- `backend/app/models/metal_rate.py` (Global reference table; PK: `rate_date DATE PRIMARY KEY`, no business_id)
+- `backend/scripts/seed_db.py` (creates demo user + demo business, seeds products/purchases/sales for business_id=1, and seeds historical global metal_rates for local development)
 
 ### Critical Seeding Instructions
 The seeder must:
 1. Create a demo user (`demo@jewelmind.com`, password: `demo123`).
 2. Create a demo business (`Rajesh Jewellers Demo`) owned by the demo user.
-3. Read all 4 CSVs from `data/` and insert every row with `business_id = 1`.
-4. The SKU uniqueness constraint applies per `(business_id, sku)`, not globally.
-5. For `metal_rates`, the composite primary key is `(business_id, rate_date)`.
+3. Read `products.csv`, `purchases.csv`, and `sales.csv` and insert every row tagged with `business_id = 1`.
+4. Read historical `metal_rates.csv` (development fixture only) and insert rows into the global `metal_rates` table (PK: `rate_date`).
 
 ### Cursor Prompt Template
 ```text
 Read docs/DATABASE_SCHEMA.md (Tables 3-6) and docs/API_SPEC.md.
 
-Implement SQLAlchemy ORM models and database seeding.
+Implement SQLAlchemy ORM models for MySQL and development database seeding.
 
 Requirements:
-1. Create Product, Purchase, Sale, and MetalRate models. Every model must include business_id as a NOT NULL foreign key to businesses.business_id with ON DELETE CASCADE.
-2. Add the composite primary key on metal_rates: (business_id, rate_date).
+1. Create Product, Purchase, and Sale models with business_id NOT NULL foreign key for MySQL.
+2. Create MetalRate model as a global reference table (PK: rate_date DATE PRIMARY KEY, no business_id).
 3. Add the unique constraint on products: (business_id, sku).
-4. Generate and run Alembic migration to create all tables.
-5. Build backend/scripts/seed_db.py that:
-   a. Creates demo user and demo business if they do not exist.
-   b. Reads all 4 CSVs from data/ and inserts rows tagged with business_id=1.
+4. Generate and run Alembic migration to create all tables in MySQL.
+5. Build backend/scripts/seed_db.py to seed demo user, demo business, products, purchases, sales, and dev fixture historical metal_rates.
 6. Do NOT add any analytics routes yet.
 ```
 
 ### Verification Gate
 - Run `python backend/scripts/seed_db.py`.
-- Query database: all rows in products, purchases, sales, metal_rates have `business_id = 1`.
+- Query database: all rows in products, purchases, and sales have `business_id = 1`, and `metal_rates` has `rate_date` primary key.
 - Verify demo user can log in and retrieve their business via the API.
 
 ### Git Commit
-`feat: add business-scoped SQLAlchemy models, Alembic migrations, and demo data seeder`
+`feat: add business-scoped SQLAlchemy MySQL models, Alembic migrations, and demo data seeder`
 
 ---
 
@@ -422,47 +444,45 @@ Requirements:
 ## Phase 11: Metal Exposure & Scenario Engine
 
 ### Objective
-Build precious metal valuation metrics (Weighted Acquisition Rate, Valuation Exposure) and the rate-shift scenario simulator — all filtered by `business_id`.
+Build precious metal valuation metrics (Weighted Acquisition Rate, Valuation Exposure), the rate-shift scenario simulator, and the automatic Metal Rate Fetch Service with provider abstraction — all scoped to `business_id` where applicable.
 
 ### Files to Create
 - `backend/app/services/metal_service.py`
+- `backend/app/services/metal_rate_fetcher.py` (External Commodity API Integration & Provider Abstraction)
+- `backend/app/services/scheduler.py` (APScheduler Background Job for Rate Fetching)
 - `backend/tests/test_metal.py`
 
-### Files to Create
-- `backend/app/services/metal_service.py`
-- `backend/app/services/metal_rate_fetcher.py` (External Commodity API Integration)
-- `backend/app/services/scheduler.py` (APScheduler Background Job for Periodic Fetching)
-- `backend/tests/test_metal.py`
-
-### Formulas & Integration Implemented
-- **External Rate Sync**: Background scheduler periodically calls external commodity API, normalizes rates, and persists daily 24K, 22K, and silver rates into PostgreSQL (`metal_rates` table).
+### Formulas & Background Architecture Implemented
+- **External Rate Sync & Provider Abstraction**: Background scheduler periodically invokes `MetalRateFetchService`. The service reads API credentials via environment variables (`METAL_RATE_API_PROVIDER`, `METAL_RATE_API_KEY`, `METAL_RATE_API_URL`) through a pluggable provider interface, allowing provider replacement without changing analytics logic.
+- **Strict Component Isolation**: The **Metal Rate Fetch Service** is the **ONLY** component allowed to communicate with external metal-rate APIs. The Analytics Engine and AI Copilot **never** make external network calls.
+- **External Rate Sync & Validation**: Background scheduler validates non-negative rates and persists daily 24K, 22K, and silver rates into MySQL (`metal_rates` table, PK: `rate_date`).
+- **Fail-Safe Fallback**: If the external API is unreachable, logs warning, continues using the latest stored database rates in MySQL, and never interrupts analytics or AI functionality.
 - **Weighted Acquisition Rate**: $\text{WAR} = \frac{\sum \text{metal\_cost}}{\sum \text{net\_weight}}$
 - **Valuation Exposure**: $\text{Net Weight} \times (R_{\text{today}} \times \text{Purity} - \text{WAR})$
 - **Scenario Simulation**: Rate shift by $x\% \rightarrow$ recalculate valuation movement.
 
 ### Cursor Prompt Template
 ```text
-Read docs/ANALYTICS_FORMULAS.md (Sections 4 & 5), docs/API_SPEC.md (Sections 6, 7 & 10), and docs/PROJECT_RULES.md (Rules 11, 20, 21).
+Read docs/ANALYTICS_FORMULAS.md (Sections 4 & 5), docs/API_SPEC.md (Section 10), and docs/PROJECT_RULES.md (Rules 11, 20-22).
 
-Implement metal exposure, scenario simulation, and automatic metal rate fetching.
+Implement metal exposure, scenario simulation, and automatic metal rate fetcher with provider abstraction.
 
 Requirements:
-1. Implement metal_rate_fetcher.py to fetch current Gold and Silver board rates from external commodity API and store in PostgreSQL (metal_rates table).
-2. Implement background scheduler service (scheduler.py using APScheduler) for periodic automated rate updates.
-3. Expose POST /api/system/metal-rates/refresh per API_SPEC.md.
+1. Implement metal_rate_fetcher.py to fetch current Gold and Silver board rates from a trusted external API configured via environment variables (METAL_RATE_API_PROVIDER, METAL_RATE_API_KEY). Implement a provider interface so the external API provider can be swapped without modifying analytics logic.
+2. Metal Rate Fetch Service must be the ONLY component allowed to communicate with external rate APIs. Analytics Engine and AI Copilot must NEVER make external network calls.
+3. Implement background scheduler (scheduler.py) for periodic automated rate updates with fail-safe fallback (log failure, use latest stored rate in MySQL, never interrupt analytics or AI).
 4. Implement calculate_metal_exposure(db, business_id, metal) and simulate_metal_rate_shift(db, business_id, metal, change_percent) querying stored DB rates only.
-5. All queries must filter by business_id.
-6. Write tests verifying July silver fall shows expected valuation exposure and confirming background fetcher updates metal_rates table cleanly.
+5. Write tests verifying July silver fall shows expected valuation exposure and confirming background fetcher updates metal_rates table cleanly with offline fallback.
 ```
 
 ### Verification Gate
 - Run `pytest backend/tests/test_metal.py`.
-- Verify metal rate fetcher pulls rates and stores them in PostgreSQL `metal_rates` table.
+- Verify metal rate fetcher pulls rates and stores them in MySQL `metal_rates` table.
 - Verify silver valuation exposure calculation matches synthetic scenario using stored rates.
-- Verify analytics functions never invoke external API directly.
+- Verify analytics functions and AI Copilot handlers make zero external network calls.
 
 ### Git Commit
-`feat: implement metal rate fetch service, background scheduler, metal exposure engine, and scenario simulation`
+`feat: implement configurable metal rate fetch service, background scheduler, metal exposure engine, and scenario simulation`
 
 ---
 

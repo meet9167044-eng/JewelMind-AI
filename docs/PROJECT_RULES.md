@@ -7,7 +7,7 @@ These rules exist to keep the architecture intact while using AI coding tools (C
 1. Financial calculations must never be performed by the LLM.
 2. All financial calculations must happen in deterministic Python or SQL functions.
 3. AI may only explain verified analytics output — it must not invent, estimate, or "fill in" numbers.
-4. PostgreSQL is the source of truth.
+4. MySQL (v8.0+) is the source of truth.
 5. Backend business logic must not be placed inside frontend components.
 6. Every analytics function must be testable in isolation.
 7. Do not introduce new frameworks without a documented reason.
@@ -20,7 +20,7 @@ These rules exist to keep the architecture intact while using AI coding tools (C
 These rules are specific to the multi-business SaaS architecture introduced after Phase 2 documentation:
 
 11. **Every analytics query must be filtered by `business_id`.** A query that aggregates across businesses is a critical data isolation bug.
-12. **Every database table containing business data (products, purchases, sales, metal_rates) must include a `business_id` foreign key.** There are no exceptions.
+12. **Every database table containing per-business data (products, purchases, sales) must include a `business_id` foreign key.** Note: `metal_rates` is a **global reference table shared by all businesses** (`rate_date DATE PRIMARY KEY`) and does not carry `business_id`.
 13. **The `business_id` must be resolved server-side from the authenticated user's session or JWT token.** The frontend must never be trusted to supply `business_id` directly without server validation.
 14. **Uploads are always tagged to the currently selected business** — the upload pipeline must inject `business_id` before persisting any row.
 15. **The AI Copilot must only invoke analytics tools within the context of the current `business_id`.** Cross-business tool calls are forbidden.
@@ -31,8 +31,9 @@ These rules are specific to the multi-business SaaS architecture introduced afte
 17. All API routes except `/health` and auth routes (`/auth/register`, `/auth/login`) require a valid JWT token.
 18. JWT tokens encode the `user_id`. `business_id` is not stored in the JWT — it is passed per-request and validated server-side against the user's ownership.
 19. Authentication must be built before any analytics endpoint is exposed.
-20. **Metal rates must be automatically updated by a background Metal Rates Fetch Service via external commodity APIs.** Shopkeepers are never required to upload `metal_rates.csv` manually.
-21. **Analytics and AI Copilot must always query stored rates from the PostgreSQL `metal_rates` table.** They must never invoke external APIs directly during calculations or query resolution.
+20. **Metal rates must be automatically updated by a background Metal Rates Fetch Service via a trusted external commodity API.** Shopkeepers upload only `Products.csv`, `Purchases.csv`, and `Sales.csv` and are never required to upload `metal_rates.csv` manually. Historical `metal_rates.csv` is used ONLY for local development, testing, synthetic data generation, and demo database seeding.
+21. **Analytics and AI Copilot must NEVER make external network calls to rate APIs.** Analytics must not depend on live internet access and must always use rates already stored in the database. The AI Copilot must only explain analytics results calculated using stored rates. The Metal Rate Fetch Service is the **ONLY** component in the system allowed to communicate with external metal-rate APIs.
+22. **API Fail-Safe Fallback & Provider Abstraction**: If the external commodity API is unavailable, the background scheduler must log the failure, continue using the latest stored rates in MySQL, and never interrupt analytics or AI functionality. The external API provider must be fully configurable using environment variables (`METAL_RATE_API_PROVIDER`, `METAL_RATE_API_KEY`), allowing the provider to be swapped without changing analytics logic.
 
 ## Tech Stack Discipline
 
@@ -101,7 +102,7 @@ Always ask the AI coding tool to plan before writing code:
 
 ## AI Copilot Guardrails (Runtime, Not Coding-Time)
 
-These rules apply to the in-app AI Copilot's system prompt once Phase 13 (AI Copilot) is reached:
+These rules apply to the in-app AI Copilot's system prompt once Phase 14 (AI Copilot) is reached:
 
 - Never invent financial values.
 - Only use values returned by approved analytics tools.
@@ -121,7 +122,7 @@ feat: setup FastAPI backend
 feat: add business and user models
 feat: add JWT authentication
 feat: add business creation and selection
-feat: add PostgreSQL models with business_id
+feat: add MySQL models with business_id
 feat: add synthetic dataset generator
 feat: implement revenue analytics (scoped by business_id)
 feat: implement profit diagnosis

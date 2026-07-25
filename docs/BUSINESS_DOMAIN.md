@@ -226,23 +226,21 @@ Upload Purchases
   ↓
 Upload Sales
   ↓
-System Automatically Syncs Latest Metal Rates (Metal Rates Fetch Service)
+System automatically keeps metal rates updated
   ↓
 Dashboard
   ↓
 AI Copilot
 ```
 
-### Upload Ownership & Automated Metal Rates
+### Upload Ownership & Global Metal Rates
 
 When a jeweller uploads data, the system:
 1. Verifies they are logged in (authentication).
 2. Verifies the business they selected belongs to them (authorization).
-3. Tags every row of the uploaded CSV data (**Products**, **Purchases**, **Sales**) with that business's `business_id` before saving it.
+3. Tags every row of the uploaded CSV data (`Products.csv`, `Purchases.csv`, `Sales.csv`) with that business's `business_id` before saving it.
 
-*Note on Metal Rates*: Shopkeepers are never required to upload metal rates manually. The system's background **Metal Rates Fetch Service** periodically pulls live and historical commodity board rates (24K Gold, 22K Gold, Silver) from external APIs and stores them in PostgreSQL. Historical rates are retained indefinitely for valuation history, trend analysis, and what-if scenario simulations.
-
-This means the `business_id` is **never supplied by the CSV file itself** — it is assigned by the server based on the user's verified session. This eliminates the possibility of a rogue upload contaminating another business's data.
+*Note on Global Metal Rates*: Shopkeepers are never required to upload metal rates manually. Gold (24K, 22K) and Silver market rates are global daily commodity prices shared across all businesses. The system's background **Metal Rates Fetch Service** periodically pulls rates from a trusted external API and stores them in the global `metal_rates` table (`rate_date DATE PRIMARY KEY`). Historical `metal_rates.csv` is used ONLY for local development, testing, synthetic data generation, and demo database seeding. Production uses the automatic Metal Rate Fetch Service. Historical rates are retained indefinitely in MySQL for **valuation history**, **trend analysis**, and **scenario simulation**. If the external API is ever unavailable, the system logs the failure and continues using the latest stored rates from MySQL without interrupting analytics or AI functionality.
 
 ### Analytics Context
 
