@@ -1,0 +1,501 @@
+product_id,sku,product_name,category,metal,purity,gross_weight,net_weight
+1,DI101,Diamond Ring 101,ring,gold,18K,5.4631,4.1528
+2,GO102,Gold Ring 102,ring,gold,22K,5.3919,5.3919
+3,DI103,Diamond Necklace 103,necklace,gold,18K,18.7828,15.4507
+4,GO104,Gold Coin 104,coin,gold,24K,11.895,11.895
+5,DI105,Diamond Ring 105,ring,gold,18K,5.3659,4.2729
+6,GO106,Gold Coin Chain 106,chain,gold,24K,11.7587,11.7587
+7,GO107,Gold Coin Chain 107,chain,gold,24K,13.6765,13.6765
+8,DI108,Diamond Ring 108,ring,gold,18K,5.8826,4.5632
+9,DI109,Diamond Ring 109,ring,gold,18K,4.4253,3.5458
+10,GO110,Gold Ring 110,ring,gold,22K,7.7867,7.7867
+11,GO111,Gold Necklace 111,necklace,gold,22K,23.3702,22.9405
+12,GO112,Gold Bangle 112,bangle,gold,22K,28.8297,28.8297
+13,GO113,Gold Chain 113,chain,gold,22K,24.6984,24.6984
+14,GO114,Gold Necklace 114,necklace,gold,22K,38.1352,37.31
+15,SI115,Silver Bangle 115,bangle,silver,925,47.6096,47.6096
+16,GO116,Gold Necklace 116,necklace,gold,22K,29.6701,29.0815
+17,DI117,Diamond Ring 117,ring,gold,18K,5.4617,4.1795
+18,SI118,Silver Payal 118,payal,silver,925,66.0832,66.0832
+19,GO119,Gold Chain 119,chain,gold,22K,12.8924,12.8924
+20,GO120,Gold Coin Chain 120,chain,gold,24K,10.7348,10.7348
+21,GO121,Gold Ring 121,ring,gold,22K,5.716,5.716
+22,GO122,Gold Coin Chain 122,chain,gold,24K,13.9576,13.9576
+23,GO123,Gold Necklace 123,necklace,gold,22K,26.836,26.3325
+24,GO124,Gold Ring 124,ring,gold,22K,6.8653,6.8653
+25,DI125,Diamond Necklace 125,necklace,gold,18K,14.6366,12.8433
+26,GO126,Gold Necklace 126,necklace,gold,22K,43.6594,42.9332
+27,GO127,Gold Earring 127,earring,gold,22K,5.734,5.6731
+28,GO128,Gold Coin Chain 128,chain,gold,24K,12.4734,12.4734
+29,DI129,Diamond Necklace 129,necklace,gold,18K,15.8518,13.1621
+30,GO130,Gold Coin Chain 130,chain,gold,24K,7.7113,7.7113
+31,DI131,Diamond Necklace 131,necklace,gold,18K,22.1163,19.1019
+32,GO132,Gold Chain 132,chain,gold,22K,9.8569,9.8569
+33,GO133,Gold Chain 133,chain,gold,22K,20.5951,20.5951
+34,GO134,Gold Chain 134,chain,gold,22K,12.0678,12.0678
+35,DI135,Diamond Necklace 135,necklace,gold,18K,12.9138,10.6628
+36,DI136,Diamond Ring 136,ring,gold,18K,4.2899,3.5236
+37,GO137,Gold Ring 137,ring,gold,22K,3.501,3.501
+38,GO138,Gold Coin 138,coin,gold,24K,9.9544,9.9544
+39,SI139,Silver Bangle 139,bangle,silver,925,38.8962,38.8962
+40,SI140,Silver Bangle 140,bangle,silver,925,47.2477,47.2477
+41,GO141,Gold Ring 141,ring,gold,22K,3.6873,3.6873
+42,DI142,Diamond Ring 142,ring,gold,18K,6.8758,5.2378
+43,SI143,Silver Coin 143,coin,silver,999,16.3176,16.3176
+44,GO144,Gold Earring 144,earring,gold,22K,4.7851,4.73
+45,GO145,Gold Chain 145,chain,gold,22K,16.0869,16.0869
+46,DI146,Diamond Earring 146,earring,gold,18K,3.9516,3.1675
+47,GO147,Gold Ring 147,ring,gold,22K,4.4362,4.4362
+48,GO148,Gold Chain 148,chain,gold,22K,12.8521,12.8521
+49,SI149,Silver Bangle 149,bangle,silver,925,22.3665,22.3665
+50,GO150,Gold Coin Chain 150,chain,gold,24K,12.6872,12.6872
+51,SI151,Silver Payal 151,payal,silver,925,62.6149,62.6149
+52,GO152,Gold Coin 152,coin,gold,24K,8.4833,8.4833
+53,SI153,Silver Coin 153,coin,silver,999,39.5475,39.5475
+54,DI154,Diamond Necklace 154,necklace,gold,18K,27.306,23.9682
+55,GO155,Gold Necklace 155,necklace,gold,22K,42.6441,41.8192
+56,SI156,Silver Utensil 156,utensil,silver,925,175.6407,175.6407
+57,GO157,Gold Coin 157,coin,gold,24K,19.0088,19.0088
+58,SI158,Silver Utensil 158,utensil,silver,925,55.451,55.451
+59,GO159,Gold Coin 159,coin,gold,24K,17.543,17.543
+60,GO160,Gold Ring 160,ring,gold,22K,6.9398,6.9398
+61,GO161,Gold Bangle 161,bangle,gold,22K,13.7262,13.7262
+62,DI162,Diamond Ring 162,ring,gold,18K,6.1215,4.7149
+63,GO163,Gold Chain 163,chain,gold,22K,12.9209,12.9209
+64,GO164,Gold Ring 164,ring,gold,22K,3.1873,3.1873
+65,GO165,Gold Coin Chain 165,chain,gold,24K,7.9839,7.9839
+66,GO166,Gold Coin 166,coin,gold,24K,14.0417,14.0417
+67,GO167,Gold Earring 167,earring,gold,22K,5.7496,5.6959
+68,GO168,Gold Bangle 168,bangle,gold,22K,19.087,19.087
+69,SI169,Silver Payal 169,payal,silver,925,62.0656,62.0656
+70,SI170,Silver Coin 170,coin,silver,999,30.9727,30.9727
+71,GO171,Gold Coin Chain 171,chain,gold,24K,13.8926,13.8926
+72,GO172,Gold Chain 172,chain,gold,22K,10.2814,10.2814
+73,GO173,Gold Coin Chain 173,chain,gold,24K,10.0421,10.0421
+74,GO174,Gold Coin Chain 174,chain,gold,24K,7.7284,7.7284
+75,GO175,Gold Earring 175,earring,gold,22K,5.3308,5.2811
+76,GO176,Gold Necklace 176,necklace,gold,22K,36.9336,36.1511
+77,DI177,Diamond Ring 177,ring,gold,18K,6.0151,5.0459
+78,DI178,Diamond Ring 178,ring,gold,18K,4.6799,3.8207
+79,GO179,Gold Chain 179,chain,gold,22K,19.4648,19.4648
+80,GO180,Gold Ring 180,ring,gold,22K,3.9658,3.9658
+81,GO181,Gold Chain 181,chain,gold,22K,18.3862,18.3862
+82,SI182,Silver Payal 182,payal,silver,925,61.9363,61.9363
+83,DI183,Diamond Necklace 183,necklace,gold,18K,19.2988,16.4877
+84,GO184,Gold Chain 184,chain,gold,22K,13.5748,13.5748
+85,SI185,Silver Coin 185,coin,silver,999,26.0333,26.0333
+86,GO186,Gold Coin Chain 186,chain,gold,24K,5.9539,5.9539
+87,GO187,Gold Earring 187,earring,gold,22K,5.9359,5.8771
+88,GO188,Gold Bangle 188,bangle,gold,22K,28.7165,28.7165
+89,GO189,Gold Ring 189,ring,gold,22K,3.0342,3.0342
+90,GO190,Gold Necklace 190,necklace,gold,22K,26.5072,25.9884
+91,GO191,Gold Coin 191,coin,gold,24K,9.0049,9.0049
+92,GO192,Gold Chain 192,chain,gold,22K,13.6036,13.6036
+93,GO193,Gold Coin Chain 193,chain,gold,24K,10.8246,10.8246
+94,SI194,Silver Payal 194,payal,silver,925,58.6439,58.6439
+95,SI195,Silver Bangle 195,bangle,silver,925,30.4621,30.4621
+96,GO196,Gold Chain 196,chain,gold,22K,14.1124,14.1124
+97,GO197,Gold Chain 197,chain,gold,22K,12.0171,12.0171
+98,GO198,Gold Ring 198,ring,gold,22K,6.3389,6.3389
+99,GO199,Gold Bangle 199,bangle,gold,22K,19.3079,19.3079
+100,GO200,Gold Ring 200,ring,gold,22K,3.7986,3.7986
+101,GO201,Gold Ring 201,ring,gold,22K,6.4304,6.4304
+102,GC202,Gold Chain GC202,chain,gold,22K,18.5,18.5
+103,GO203,Gold Necklace 203,necklace,gold,22K,41.634,40.7114
+104,SI204,Silver Bangle 204,bangle,silver,925,47.6116,47.6116
+105,DI205,Diamond Earring 205,earring,gold,18K,3.9161,3.087
+106,GO206,Gold Necklace 206,necklace,gold,22K,26.0263,25.5639
+107,GO207,Gold Bangle 207,bangle,gold,22K,29.1472,29.1472
+108,GO208,Gold Chain 208,chain,gold,22K,16.1291,16.1291
+109,SI209,Silver Bangle 209,bangle,silver,925,38.1991,38.1991
+110,GO210,Gold Coin 210,coin,gold,24K,19.8326,19.8326
+111,GO211,Gold Coin Chain 211,chain,gold,24K,8.7362,8.7362
+112,DI212,Diamond Earring 212,earring,gold,18K,4.1058,3.2447
+113,DI213,Diamond Earring 213,earring,gold,18K,4.2721,3.4102
+114,DI214,Diamond Necklace 214,necklace,gold,18K,26.8609,22.4097
+115,GO215,Gold Coin 215,coin,gold,24K,15.2051,15.2051
+116,DI216,Diamond Ring 216,ring,gold,18K,5.5854,4.3399
+117,SI217,Silver Coin 217,coin,silver,999,31.0203,31.0203
+118,GO218,Gold Chain 218,chain,gold,22K,16.9789,16.9789
+119,GO219,Gold Earring 219,earring,gold,22K,3.7662,3.7223
+120,DI220,Diamond Ring 220,ring,gold,18K,3.8927,3.0118
+121,GO221,Gold Earring 221,earring,gold,22K,5.6601,5.6102
+122,DI222,Diamond Ring 222,ring,gold,18K,5.3783,4.447
+123,GO223,Gold Ring 223,ring,gold,22K,7.2724,7.2724
+124,DI224,Diamond Necklace 224,necklace,gold,18K,19.9531,16.7443
+125,DI225,Diamond Necklace 225,necklace,gold,18K,24.9045,21.1855
+126,GO226,Gold Earring 226,earring,gold,22K,5.6461,5.5909
+127,DI227,Diamond Ring 227,ring,gold,18K,3.6947,3.0645
+128,GO228,Gold Coin 228,coin,gold,24K,11.2314,11.2314
+129,SI229,Silver Payal 229,payal,silver,925,58.1956,58.1956
+130,DI230,Diamond Earring 230,earring,gold,18K,3.6764,2.9689
+131,GO231,Gold Coin 231,coin,gold,24K,9.6225,9.6225
+132,GO232,Gold Chain 232,chain,gold,22K,8.3701,8.3701
+133,DI233,Diamond Necklace 233,necklace,gold,18K,16.5802,14.5876
+134,GO234,Gold Coin 234,coin,gold,24K,8.2685,8.2685
+135,SI235,Silver Bangle 235,bangle,silver,925,22.9212,22.9212
+136,GO236,Gold Necklace 236,necklace,gold,22K,27.7109,27.1123
+137,DI237,Diamond Necklace 237,necklace,gold,18K,21.7409,19.0534
+138,DI238,Diamond Earring 238,earring,gold,18K,4.6827,3.6759
+139,GO239,Gold Coin Chain 239,chain,gold,24K,9.7207,9.7207
+140,SI240,Silver Coin 240,coin,silver,999,21.4836,21.4836
+141,DI241,Diamond Earring 241,earring,gold,18K,2.5399,2.1494
+142,GO242,Gold Ring 242,ring,gold,22K,6.2076,6.2076
+143,GO243,Gold Coin Chain 243,chain,gold,24K,12.2929,12.2929
+144,GO244,Gold Ring 244,ring,gold,22K,7.8189,7.8189
+145,GO245,Gold Coin Chain 245,chain,gold,24K,8.7446,8.7446
+146,SI246,Silver Coin 246,coin,silver,999,45.6533,45.6533
+147,GO247,Gold Necklace 247,necklace,gold,22K,28.4561,27.792
+148,DI248,Diamond Earring 248,earring,gold,18K,3.1325,2.6633
+149,DI249,Diamond Necklace 249,necklace,gold,18K,29.3546,24.2917
+150,DI250,Diamond Necklace 250,necklace,gold,18K,14.3938,11.9236
+151,GO251,Gold Necklace 251,necklace,gold,22K,18.559,18.1146
+152,GO252,Gold Chain 252,chain,gold,22K,14.682,14.682
+153,SI253,Silver Payal 253,payal,silver,925,36.3674,36.3674
+154,GO254,Gold Chain 254,chain,gold,22K,24.6383,24.6383
+155,SI255,Silver Coin 255,coin,silver,999,43.3929,43.3929
+156,SI256,Silver Coin 256,coin,silver,999,40.2472,40.2472
+157,DI257,Diamond Ring 257,ring,gold,18K,6.9247,5.5603
+158,GO258,Gold Necklace 258,necklace,gold,22K,36.5728,35.8635
+159,SI259,Silver Utensil 259,utensil,silver,925,106.8915,106.8915
+160,SI260,Silver Payal 260,payal,silver,925,41.4832,41.4832
+161,GO261,Gold Necklace 261,necklace,gold,22K,28.8188,28.3219
+162,GO262,Gold Chain 262,chain,gold,22K,11.2042,11.2042
+163,SI263,Silver Coin 263,coin,silver,999,45.0083,45.0083
+164,DI264,Diamond Earring 264,earring,gold,18K,4.2965,3.6678
+165,GO265,Gold Necklace 265,necklace,gold,22K,34.8059,34.0778
+166,GO266,Gold Necklace 266,necklace,gold,22K,43.0871,42.0913
+167,GO267,Gold Chain 267,chain,gold,22K,12.0913,12.0913
+168,SI268,Silver Bangle 268,bangle,silver,925,22.6916,22.6916
+169,DI269,Diamond Ring 269,ring,gold,18K,5.5788,4.4869
+170,DI270,Diamond Earring 270,earring,gold,18K,4.0161,3.1856
+171,GO271,Gold Earring 271,earring,gold,22K,3.3566,3.3292
+172,SI272,Silver Coin 272,coin,silver,999,27.5585,27.5585
+173,GO273,Gold Chain 273,chain,gold,22K,17.1759,17.1759
+174,GO274,Gold Necklace 274,necklace,gold,22K,37.6316,36.7959
+175,GO275,Gold Chain 275,chain,gold,22K,10.3823,10.3823
+176,SI276,Silver Payal 276,payal,silver,925,79.6742,79.6742
+177,GO277,Gold Necklace 277,necklace,gold,22K,22.0248,21.5109
+178,GO278,Gold Earring 278,earring,gold,22K,4.5164,4.4698
+179,DI279,Diamond Ring 279,ring,gold,18K,6.2039,4.8051
+180,GO280,Gold Necklace 280,necklace,gold,22K,22.1071,21.5984
+181,GO281,Gold Coin 281,coin,gold,24K,19.7854,19.7854
+182,GO282,Gold Coin 282,coin,gold,24K,12.8188,12.8188
+183,GO283,Gold Bangle 283,bangle,gold,22K,18.2712,18.2712
+184,DI284,Diamond Necklace 284,necklace,gold,18K,16.9528,14.3522
+185,SI285,Silver Utensil 285,utensil,silver,925,138.7501,138.7501
+186,GO286,Gold Chain 286,chain,gold,22K,20.4986,20.4986
+187,DI287,Diamond Necklace 287,necklace,gold,18K,15.1524,12.717
+188,SI288,Silver Coin 288,coin,silver,999,32.234,32.234
+189,GO289,Gold Bangle 289,bangle,gold,22K,10.9377,10.9377
+190,DI290,Diamond Earring 290,earring,gold,18K,3.0332,2.4559
+191,GO291,Gold Coin 291,coin,gold,24K,10.7173,10.7173
+192,GO292,Gold Earring 292,earring,gold,22K,4.3356,4.2888
+193,GO293,Gold Chain 293,chain,gold,22K,14.9404,14.9404
+194,DI294,Diamond Ring 294,ring,gold,18K,4.5496,3.7547
+195,GO295,Gold Ring 295,ring,gold,22K,5.6896,5.6896
+196,SI296,Silver Bangle 296,bangle,silver,925,29.6387,29.6387
+197,DI297,Diamond Ring 297,ring,gold,18K,4.2887,3.3083
+198,SI298,Silver Coin 298,coin,silver,999,15.7741,15.7741
+199,GO299,Gold Bangle 299,bangle,gold,22K,19.2605,19.2605
+200,GO300,Gold Necklace 300,necklace,gold,22K,16.7287,16.4058
+201,GO301,Gold Bangle 301,bangle,gold,22K,18.3302,18.3302
+202,DI302,Diamond Ring 302,ring,gold,18K,5.355,4.3318
+203,DI303,Diamond Ring 303,ring,gold,18K,4.3925,3.5736
+204,SI304,Silver Bangle 304,bangle,silver,925,23.1628,23.1628
+205,GO305,Gold Coin Chain 305,chain,gold,24K,9.4979,9.4979
+206,GO306,Gold Necklace 306,necklace,gold,22K,26.1323,25.6022
+207,GO307,Gold Coin Chain 307,chain,gold,24K,13.2941,13.2941
+208,DI308,Diamond Necklace 308,necklace,gold,18K,12.9277,11.0838
+209,GO309,Gold Chain 309,chain,gold,22K,18.2845,18.2845
+210,GO310,Gold Ring 310,ring,gold,22K,3.1977,3.1977
+211,GO311,Gold Coin 311,coin,gold,24K,6.0918,6.0918
+212,SI312,Silver Utensil 312,utensil,silver,925,170.6976,170.6976
+213,GO313,Gold Coin Chain 313,chain,gold,24K,10.8758,10.8758
+214,GO314,Gold Coin 314,coin,gold,24K,15.0718,15.0718
+215,SI315,Silver Payal 315,payal,silver,925,40.8508,40.8508
+216,DI316,Diamond Ring 316,ring,gold,18K,4.2311,3.2471
+217,SI317,Silver Bangle 317,bangle,silver,925,32.1275,32.1275
+218,GO318,Gold Necklace 318,necklace,gold,22K,42.2698,41.5219
+219,SI319,Silver Utensil 319,utensil,silver,925,78.5036,78.5036
+220,SI320,Silver Coin 320,coin,silver,999,39.659,39.659
+221,GO321,Gold Coin Chain 321,chain,gold,24K,12.4688,12.4688
+222,GO322,Gold Coin Chain 322,chain,gold,24K,12.5433,12.5433
+223,DI323,Diamond Ring 323,ring,gold,18K,6.7005,5.2555
+224,SI324,Silver Bangle 324,bangle,silver,925,48.1507,48.1507
+225,GO325,Gold Necklace 325,necklace,gold,22K,26.899,26.4171
+226,GO326,Gold Chain 326,chain,gold,22K,13.4675,13.4675
+227,DI327,Diamond Necklace 327,necklace,gold,18K,17.0951,14.5655
+228,GO328,Gold Coin Chain 328,chain,gold,24K,11.4872,11.4872
+229,GO329,Gold Bangle 329,bangle,gold,22K,16.1684,16.1684
+230,DI330,Diamond Ring 330,ring,gold,18K,4.7588,3.6613
+231,DI331,Diamond Necklace 331,necklace,gold,18K,20.3881,16.9595
+232,SI332,Silver Coin 332,coin,silver,999,38.8965,38.8965
+233,GO333,Gold Coin Chain 333,chain,gold,24K,12.6163,12.6163
+234,GO334,Gold Bangle 334,bangle,gold,22K,16.4047,16.4047
+235,GO335,Gold Coin 335,coin,gold,24K,8.0469,8.0469
+236,SI336,Silver Payal 336,payal,silver,925,45.6461,45.6461
+237,GO337,Gold Chain 337,chain,gold,22K,8.7772,8.7772
+238,GO338,Gold Coin 338,coin,gold,24K,17.9613,17.9613
+239,GO339,Gold Chain 339,chain,gold,22K,20.6013,20.6013
+240,GO340,Gold Coin Chain 340,chain,gold,24K,5.1622,5.1622
+241,GO341,Gold Bangle 341,bangle,gold,22K,21.0662,21.0662
+242,SI342,Silver Utensil 342,utensil,silver,925,137.6048,137.6048
+243,GO343,Gold Coin 343,coin,gold,24K,15.8002,15.8002
+244,GO344,Gold Bangle 344,bangle,gold,22K,15.9038,15.9038
+245,SI345,Silver Payal 345,payal,silver,925,39.8096,39.8096
+246,SI346,Silver Utensil 346,utensil,silver,925,84.5028,84.5028
+247,GO347,Gold Bangle 347,bangle,gold,22K,21.3958,21.3958
+248,GO348,Gold Chain 348,chain,gold,22K,12.1774,12.1774
+249,GO349,Gold Chain 349,chain,gold,22K,17.3609,17.3609
+250,SI350,Silver Payal 350,payal,silver,925,77.1732,77.1732
+251,SI351,Silver Utensil 351,utensil,silver,925,100.6346,100.6346
+252,DI352,Diamond Earring 352,earring,gold,18K,4.2901,3.5214
+253,GO353,Gold Coin Chain 353,chain,gold,24K,12.2356,12.2356
+254,SI354,Silver Bangle 354,bangle,silver,925,49.5838,49.5838
+255,GO355,Gold Ring 355,ring,gold,22K,5.3041,5.3041
+256,DI356,Diamond Earring 356,earring,gold,18K,4.1983,3.4873
+257,GO357,Gold Ring 357,ring,gold,22K,3.6998,3.6998
+258,GO358,Gold Bangle 358,bangle,gold,22K,20.9309,20.9309
+259,DI359,Diamond Ring 359,ring,gold,18K,4.1442,3.1863
+260,GO360,Gold Chain 360,chain,gold,22K,24.8355,24.8355
+261,DI361,Diamond Earring 361,earring,gold,18K,4.8717,3.9864
+262,GO362,Gold Ring 362,ring,gold,22K,7.1953,7.1953
+263,DI363,Diamond Necklace 363,necklace,gold,18K,13.3379,11.0827
+264,GO364,Gold Bangle 364,bangle,gold,22K,10.9703,10.9703
+265,SI365,Silver Bangle 365,bangle,silver,925,20.2554,20.2554
+266,DI366,Diamond Ring 366,ring,gold,18K,3.9812,3.1433
+267,GO367,Gold Bangle 367,bangle,gold,22K,11.3594,11.3594
+268,GO368,Gold Coin 368,coin,gold,24K,7.2654,7.2654
+269,GO369,Gold Ring 369,ring,gold,22K,4.0936,4.0936
+270,DI370,Diamond Ring 370,ring,gold,18K,5.096,4.256
+271,DI371,Diamond Ring 371,ring,gold,18K,5.7321,4.3867
+272,GO372,Gold Earring 372,earring,gold,22K,5.6946,5.634
+273,GO373,Gold Coin Chain 373,chain,gold,24K,5.1573,5.1573
+274,DI374,Diamond Ring 374,ring,gold,18K,5.3627,4.3282
+275,GO375,Gold Coin Chain 375,chain,gold,24K,5.1673,5.1673
+276,GO376,Gold Chain 376,chain,gold,22K,20.2773,20.2773
+277,SI377,Silver Payal 377,payal,silver,925,56.7869,56.7869
+278,DI378,Diamond Necklace 378,necklace,gold,18K,17.1604,14.5841
+279,DI379,Diamond Earring 379,earring,gold,18K,4.0936,3.3772
+280,SI380,Silver Bangle 380,bangle,silver,925,57.5885,57.5885
+281,GO381,Gold Bangle 381,bangle,gold,22K,13.5853,13.5853
+282,GO382,Gold Necklace 382,necklace,gold,22K,42.5415,41.6824
+283,SI383,Silver Bangle 383,bangle,silver,925,29.6388,29.6388
+284,GO384,Gold Bangle 384,bangle,gold,22K,22.3956,22.3956
+285,GO385,Gold Bangle 385,bangle,gold,22K,15.0484,15.0484
+286,GO386,Gold Necklace 386,necklace,gold,22K,25.6332,25.0601
+287,GO387,Gold Bangle 387,bangle,gold,22K,11.5804,11.5804
+288,GO388,Gold Coin Chain 388,chain,gold,24K,14.593,14.593
+289,DI389,Diamond Ring 389,ring,gold,18K,5.1065,4.1901
+290,SI390,Silver Coin 390,coin,silver,999,37.8895,37.8895
+291,DI391,Diamond Earring 391,earring,gold,18K,2.8999,2.3094
+292,GO392,Gold Necklace 392,necklace,gold,22K,17.4185,17.0016
+293,GO393,Gold Bangle 393,bangle,gold,22K,22.9979,22.9979
+294,SI394,Silver Coin 394,coin,silver,999,11.2674,11.2674
+295,GO395,Gold Chain 395,chain,gold,22K,14.8897,14.8897
+296,SI396,Silver Utensil 396,utensil,silver,925,106.5754,106.5754
+297,GO397,Gold Necklace 397,necklace,gold,22K,29.2802,28.6626
+298,GO398,Gold Coin Chain 398,chain,gold,24K,12.0285,12.0285
+299,GO399,Gold Earring 399,earring,gold,22K,2.7894,2.7577
+300,GO400,Gold Chain 400,chain,gold,22K,18.9634,18.9634
+301,SI401,Silver Bangle 401,bangle,silver,925,33.2508,33.2508
+302,GO402,Gold Chain 402,chain,gold,22K,24.6146,24.6146
+303,GO403,Gold Coin Chain 403,chain,gold,24K,14.7384,14.7384
+304,GO404,Gold Chain 404,chain,gold,22K,23.2115,23.2115
+305,DI405,Diamond Necklace 405,necklace,gold,18K,28.5447,24.7258
+306,GO406,Gold Bangle 406,bangle,gold,22K,28.0255,28.0255
+307,DI407,Diamond Necklace 407,necklace,gold,18K,24.4612,20.694
+308,GO408,Gold Necklace 408,necklace,gold,22K,23.1329,22.5917
+309,DI409,Diamond Necklace 409,necklace,gold,18K,24.3197,20.9922
+310,GO410,Gold Necklace 410,necklace,gold,22K,31.2909,30.6255
+311,GO411,Gold Coin Chain 411,chain,gold,24K,6.7935,6.7935
+312,GO412,Gold Chain 412,chain,gold,22K,22.4573,22.4573
+313,GO413,Gold Bangle 413,bangle,gold,22K,10.3132,10.3132
+314,DI414,Diamond Ring 414,ring,gold,18K,4.2251,3.5003
+315,SI415,Silver Coin 415,coin,silver,999,42.8276,42.8276
+316,DI416,Diamond Ring 416,ring,gold,18K,6.3732,4.8799
+317,DI417,Diamond Necklace 417,necklace,gold,18K,17.387,14.7122
+318,GO418,Gold Chain 418,chain,gold,22K,17.6338,17.6338
+319,SI419,Silver Payal 419,payal,silver,925,72.4721,72.4721
+320,GO420,Gold Coin Chain 420,chain,gold,24K,11.7703,11.7703
+321,DI421,Diamond Earring 421,earring,gold,18K,3.6217,3.0001
+322,GO422,Gold Necklace 422,necklace,gold,22K,37.1924,36.3621
+323,GO423,Gold Coin Chain 423,chain,gold,24K,11.8931,11.8931
+324,DI424,Diamond Necklace 424,necklace,gold,18K,13.4117,11.2024
+325,GO425,Gold Bangle 425,bangle,gold,22K,16.9172,16.9172
+326,GO426,Gold Chain 426,chain,gold,22K,9.6607,9.6607
+327,DI427,Diamond Earring 427,earring,gold,18K,2.6964,2.2934
+328,DI428,Diamond Earring 428,earring,gold,18K,3.8155,3.0974
+329,DI429,Diamond Necklace 429,necklace,gold,18K,22.721,18.6736
+330,GO430,Gold Ring 430,ring,gold,22K,4.6319,4.6319
+331,GO431,Gold Ring 431,ring,gold,22K,6.1706,6.1706
+332,GO432,Gold Ring 432,ring,gold,22K,6.9177,6.9177
+333,SI433,Silver Payal 433,payal,silver,925,52.5275,52.5275
+334,GO434,Gold Bangle 434,bangle,gold,22K,14.5628,14.5628
+335,GO435,Gold Chain 435,chain,gold,22K,17.4016,17.4016
+336,SI436,Silver Utensil 436,utensil,silver,925,106.314,106.314
+337,GO437,Gold Coin Chain 437,chain,gold,24K,6.8574,6.8574
+338,GO438,Gold Coin Chain 438,chain,gold,24K,10.8588,10.8588
+339,GO439,Gold Ring 439,ring,gold,22K,4.9004,4.9004
+340,SI440,Silver Utensil 440,utensil,silver,925,165.8251,165.8251
+341,GO441,Gold Necklace 441,necklace,gold,22K,23.8614,23.4326
+342,SI442,Silver Payal 442,payal,silver,925,33.6753,33.6753
+343,GO443,Gold Chain 443,chain,gold,22K,12.5555,12.5555
+344,GO444,Gold Chain 444,chain,gold,22K,14.46,14.46
+345,GO445,Gold Ring 445,ring,gold,22K,6.9195,6.9195
+346,GO446,Gold Earring 446,earring,gold,22K,3.04,3.0109
+347,GO447,Gold Coin Chain 447,chain,gold,24K,8.607,8.607
+348,GO448,Gold Chain 448,chain,gold,22K,9.5558,9.5558
+349,DI449,Diamond Earring 449,earring,gold,18K,4.8289,3.9789
+350,SI450,Silver Coin 450,coin,silver,999,40.4539,40.4539
+351,DI451,Diamond Earring 451,earring,gold,18K,2.3067,1.96
+352,GO452,Gold Ring 452,ring,gold,22K,5.1549,5.1549
+353,GO453,Gold Ring 453,ring,gold,22K,5.7849,5.7849
+354,DI454,Diamond Earring 454,earring,gold,18K,3.5373,3.0016
+355,SI455,Silver Payal 455,payal,silver,925,34.4809,34.4809
+356,GO456,Gold Coin Chain 456,chain,gold,24K,10.5422,10.5422
+357,SI457,Silver Bangle 457,bangle,silver,925,43.877,43.877
+358,GO458,Gold Earring 458,earring,gold,22K,5.2455,5.1854
+359,DI459,Diamond Earring 459,earring,gold,18K,2.037,1.683
+360,GO460,Gold Ring 460,ring,gold,22K,6.8958,6.8958
+361,DI461,Diamond Ring 461,ring,gold,18K,6.037,4.8008
+362,SI462,Silver Utensil 462,utensil,silver,925,198.9095,198.9095
+363,DI463,Diamond Necklace 463,necklace,gold,18K,16.3694,13.8933
+364,GO464,Gold Coin Chain 464,chain,gold,24K,11.8532,11.8532
+365,GO465,Gold Coin 465,coin,gold,24K,7.5425,7.5425
+366,SI466,Silver Coin 466,coin,silver,999,20.7568,20.7568
+367,GO467,Gold Coin 467,coin,gold,24K,9.0261,9.0261
+368,GO468,Gold Coin Chain 468,chain,gold,24K,6.4593,6.4593
+369,GO469,Gold Ring 469,ring,gold,22K,3.836,3.836
+370,GO470,Gold Coin 470,coin,gold,24K,9.1394,9.1394
+371,DI471,Diamond Ring 471,ring,gold,18K,4.5491,3.5364
+372,GO472,Gold Ring 472,ring,gold,22K,4.8056,4.8056
+373,SI473,Silver Utensil 473,utensil,silver,925,191.6333,191.6333
+374,SI474,Silver Utensil 474,utensil,silver,925,158.1349,158.1349
+375,GO475,Gold Earring 475,earring,gold,22K,4.2353,4.191
+376,GO476,Gold Necklace 476,necklace,gold,22K,28.7358,28.2449
+377,DI477,Diamond Necklace 477,necklace,gold,18K,12.1218,10.3794
+378,GO478,Gold Chain 478,chain,gold,22K,22.3074,22.3074
+379,DI479,Diamond Earring 479,earring,gold,18K,3.1397,2.4927
+380,SI480,Silver Coin 480,coin,silver,999,27.6089,27.6089
+381,SI481,Silver Payal 481,payal,silver,925,51.5308,51.5308
+382,SI482,Silver Bangle 482,bangle,silver,925,52.9414,52.9414
+383,SI483,Silver Payal 483,payal,silver,925,62.5518,62.5518
+384,SI484,Silver Utensil 484,utensil,silver,925,139.1589,139.1589
+385,SI485,Silver Payal 485,payal,silver,925,45.0218,45.0218
+386,GO486,Gold Ring 486,ring,gold,22K,6.0161,6.0161
+387,GO487,Gold Coin Chain 487,chain,gold,24K,11.9529,11.9529
+388,GO488,Gold Coin 488,coin,gold,24K,12.1851,12.1851
+389,GO489,Gold Necklace 489,necklace,gold,22K,20.3291,19.9391
+390,GO490,Gold Bangle 490,bangle,gold,22K,16.3828,16.3828
+391,SI491,Silver Coin 491,coin,silver,999,39.395,39.395
+392,SI492,Silver Payal 492,payal,silver,925,61.6451,61.6451
+393,GO493,Gold Earring 493,earring,gold,22K,5.8872,5.8217
+394,GO494,Gold Bangle 494,bangle,gold,22K,16.5177,16.5177
+395,DI495,Diamond Ring 495,ring,gold,18K,4.4811,3.4824
+396,SI496,Silver Coin 496,coin,silver,999,24.6006,24.6006
+397,GO497,Gold Ring 497,ring,gold,22K,7.6603,7.6603
+398,GO498,Gold Coin 498,coin,gold,24K,7.997,7.997
+399,GO499,Gold Coin Chain 499,chain,gold,24K,14.9726,14.9726
+400,SI500,Silver Bangle 500,bangle,silver,925,27.1971,27.1971
+401,GO501,Gold Ring 501,ring,gold,22K,6.8381,6.8381
+402,GO502,Gold Ring 502,ring,gold,22K,3.1346,3.1346
+403,SI503,Silver Bangle 503,bangle,silver,925,49.0885,49.0885
+404,GO504,Gold Necklace 504,necklace,gold,22K,43.2892,42.524
+405,SI505,Silver Payal 505,payal,silver,925,69.8843,69.8843
+406,GO506,Gold Coin 506,coin,gold,24K,17.4692,17.4692
+407,GO507,Gold Chain 507,chain,gold,22K,9.1757,9.1757
+408,DI508,Diamond Necklace 508,necklace,gold,18K,27.2602,22.6886
+409,SI509,Silver Bangle 509,bangle,silver,925,46.9191,46.9191
+410,SI510,Silver Bangle 510,bangle,silver,925,25.5672,25.5672
+411,GO511,Gold Chain 511,chain,gold,22K,13.1482,13.1482
+412,GO512,Gold Earring 512,earring,gold,22K,3.3844,3.3552
+413,GO513,Gold Coin Chain 513,chain,gold,24K,9.2313,9.2313
+414,DI514,Diamond Ring 514,ring,gold,18K,4.8195,3.8752
+415,DI515,Diamond Ring 515,ring,gold,18K,5.5928,4.4374
+416,GO516,Gold Ring 516,ring,gold,22K,5.6718,5.6718
+417,GO517,Gold Coin Chain 517,chain,gold,24K,14.235,14.235
+418,DI518,Diamond Necklace 518,necklace,gold,18K,27.6534,23.6409
+419,GO519,Gold Ring 519,ring,gold,22K,3.1838,3.1838
+420,DI520,Diamond Ring 520,ring,gold,18K,6.8895,5.4005
+421,SI521,Silver Payal 521,payal,silver,925,70.6148,70.6148
+422,SI522,Silver Bangle 522,bangle,silver,925,43.7528,43.7528
+423,SI523,Silver Coin 523,coin,silver,999,46.576,46.576
+424,GO524,Gold Necklace 524,necklace,gold,22K,18.2811,17.9523
+425,GO525,Gold Coin Chain 525,chain,gold,24K,11.6469,11.6469
+426,SI526,Silver Payal 526,payal,silver,925,38.3169,38.3169
+427,SI527,Silver Payal 527,payal,silver,925,60.6339,60.6339
+428,DI528,Diamond Earring 528,earring,gold,18K,3.6897,2.987
+429,GO529,Gold Coin Chain 529,chain,gold,24K,11.4674,11.4674
+430,GO530,Gold Ring 530,ring,gold,22K,7.8341,7.8341
+431,DI531,Diamond Necklace 531,necklace,gold,18K,17.9687,14.954
+432,DI532,Diamond Necklace 532,necklace,gold,18K,13.907,12.1559
+433,DI533,Diamond Earring 533,earring,gold,18K,2.666,2.1387
+434,SI534,Silver Utensil 534,utensil,silver,925,133.699,133.699
+435,DI535,Diamond Necklace 535,necklace,gold,18K,24.378,21.1293
+436,DI536,Diamond Earring 536,earring,gold,18K,3.1224,2.5687
+437,DI537,Diamond Ring 537,ring,gold,18K,5.8784,4.6132
+438,GO538,Gold Ring 538,ring,gold,22K,3.7537,3.7537
+439,GO539,Gold Earring 539,earring,gold,22K,5.992,5.9325
+440,GO540,Gold Ring 540,ring,gold,22K,4.4772,4.4772
+441,GO541,Gold Earring 541,earring,gold,22K,5.7219,5.6742
+442,DI542,Diamond Necklace 542,necklace,gold,18K,26.9637,22.5468
+443,DI543,Diamond Necklace 543,necklace,gold,18K,18.2699,15.7014
+444,GO544,Gold Chain 544,chain,gold,22K,21.3326,21.3326
+445,SI545,Silver Payal 545,payal,silver,925,56.0557,56.0557
+446,DI546,Diamond Necklace 546,necklace,gold,18K,18.2694,15.9701
+447,GO547,Gold Necklace 547,necklace,gold,22K,36.6598,35.9406
+448,DI548,Diamond Earring 548,earring,gold,18K,2.2015,1.8774
+449,GO549,Gold Coin Chain 549,chain,gold,24K,12.1078,12.1078
+450,SI550,Silver Coin 550,coin,silver,999,10.9034,10.9034
+451,GO551,Gold Chain 551,chain,gold,22K,13.8323,13.8323
+452,GO552,Gold Necklace 552,necklace,gold,22K,18.2809,17.8714
+453,DI553,Diamond Necklace 553,necklace,gold,18K,28.7386,24.0131
+454,SI554,Silver Bangle 554,bangle,silver,925,40.6398,40.6398
+455,GO555,Gold Bangle 555,bangle,gold,22K,21.0382,21.0382
+456,DI556,Diamond Earring 556,earring,gold,18K,2.993,2.4701
+457,SI557,Silver Coin 557,coin,silver,999,28.4822,28.4822
+458,GO558,Gold Earring 558,earring,gold,22K,5.2921,5.2364
+459,GO559,Gold Coin Chain 559,chain,gold,24K,6.8639,6.8639
+460,DI560,Diamond Necklace 560,necklace,gold,18K,23.8315,20.4061
+461,DI561,Diamond Ring 561,ring,gold,18K,6.0809,4.6784
+462,SI562,Silver Payal 562,payal,silver,925,52.4788,52.4788
+463,DI563,Diamond Ring 563,ring,gold,18K,5.0034,4.2011
+464,DI564,Diamond Necklace 564,necklace,gold,18K,15.8663,13.6974
+465,GO565,Gold Ring 565,ring,gold,22K,6.5188,6.5188
+466,DI566,Diamond Ring 566,ring,gold,18K,6.286,4.9899
+467,DI567,Diamond Earring 567,earring,gold,18K,4.3985,3.5951
+468,GO568,Gold Necklace 568,necklace,gold,22K,25.9738,25.5173
+469,GO569,Gold Ring 569,ring,gold,22K,3.5698,3.5698
+470,GO570,Gold Coin Chain 570,chain,gold,24K,11.707,11.707
+471,GO571,Gold Earring 571,earring,gold,22K,4.2132,4.1632
+472,GO572,Gold Chain 572,chain,gold,22K,13.3279,13.3279
+473,GO573,Gold Ring 573,ring,gold,22K,4.9432,4.9432
+474,DI574,Diamond Earring 574,earring,gold,18K,3.1776,2.6939
+475,GO575,Gold Ring 575,ring,gold,22K,4.7599,4.7599
+476,GO576,Gold Chain 576,chain,gold,22K,15.7836,15.7836
+477,GO577,Gold Bangle 577,bangle,gold,22K,13.4506,13.4506
+478,DI578,Diamond Ring 578,ring,gold,18K,5.8576,4.5452
+479,DI579,Diamond Necklace 579,necklace,gold,18K,28.5363,24.1015
+480,GO580,Gold Bangle 580,bangle,gold,22K,23.4422,23.4422
+481,GO581,Gold Coin 581,coin,gold,24K,9.6978,9.6978
+482,GO582,Gold Bangle 582,bangle,gold,22K,14.7715,14.7715
+483,GO583,Gold Chain 583,chain,gold,22K,9.9881,9.9881
+484,GO584,Gold Coin Chain 584,chain,gold,24K,8.7331,8.7331
+485,GO585,Gold Bangle 585,bangle,gold,22K,12.8272,12.8272
+486,SI586,Silver Coin 586,coin,silver,999,25.5385,25.5385
+487,SI587,Silver Utensil 587,utensil,silver,925,139.4639,139.4639
+488,GO588,Gold Earring 588,earring,gold,22K,4.5118,4.4681
+489,GO589,Gold Coin Chain 589,chain,gold,24K,9.8667,9.8667
+490,GO590,Gold Ring 590,ring,gold,22K,5.6869,5.6869
+491,GO591,Gold Bangle 591,bangle,gold,22K,28.3832,28.3832
+492,DI592,Diamond Ring 592,ring,gold,18K,6.7574,5.5826
+493,GO593,Gold Ring 593,ring,gold,22K,3.8343,3.8343
+494,GO594,Gold Earring 594,earring,gold,22K,3.5109,3.4802
+495,GO595,Gold Chain 595,chain,gold,22K,22.3137,22.3137
+496,GO596,Gold Coin Chain 596,chain,gold,24K,11.1941,11.1941
+497,DI597,Diamond Earring 597,earring,gold,18K,4.5966,3.6197
+498,SI598,Silver Coin 598,coin,silver,999,29.3844,29.3844
+499,DI599,Diamond Necklace 599,necklace,gold,18K,15.5123,13.2935
+500,GO600,Gold Necklace 600,necklace,gold,22K,31.8475,31.1716
