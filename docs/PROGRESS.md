@@ -20,8 +20,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 6** | Business Management | Multi-Tenant Business Layer | **Completed** |
 | **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | **Completed** |
 | **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | **Completed** |
-| **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | *Next* |
-| **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | *Pending* |
+| **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | **Completed** |
+| **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | *Next* |
 | **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | *Pending* |
 | **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Pending* |
 | **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | *Pending* |
@@ -76,7 +76,7 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - Key finding: GC202 shows a **-2.24% gross margin** across 20 sales — driven by heavy June discounts (Scenario A). This is intentional synthetic data behaviour; the analytics engine must handle negative margins.
   - All formula assertions passed. Script verified against `ANALYTICS_FORMULAS.md` Section 1.
 
-## Immediate Next Tasks (Phase 9)
+## Immediate Next Tasks (Phase 10)
 
 - [x] **Phase 8: Core Analytics Service** — COMPLETE. 11/11 tests. Full regression: **36/36 passed**.
   - `backend/app/services/analytics_service.py` — calculate_revenue, calculate_cogs, calculate_gross_profit, compare_months
@@ -86,12 +86,22 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - **Security gate PASSED**: Cross-tenant analytics access returns 403
   - Negative gross margin handled correctly (Scenario A from Phase 3 ground truth)
 
-- [ ] **Phase 9: Flagship Profit Diagnosis Engine (Variance Decomposition)**
-  *   Create `backend/app/services/profit_diagnosis_service.py`
-  *   Implement `analyze_profit_change(db, business_id, target_month, baseline_month)`
-  *   5 drivers: Volume, Discount, Making Charge, Mix, Metal Margin
-  *   Expose POST /api/businesses/{business_id}/analytics/profit-diagnosis
-  *   Assert ground truth: June vs May → volume ~-₹52K, discount ~-₹31K, making charge ~-₹21K, mix ~-₹14K
+- [x] **Phase 9: Profit Diagnosis Engine** — COMPLETE. 8/8 tests. Full regression: **44/44 passed**.
+  - `backend/app/services/profit_diagnosis_service.py` — analyze_profit_change() with 5 additive drivers
+  - `GET /api/businesses/{id}/analytics/profit-diagnosis` — added to analytics router
+  - **Additivity gate PASSED**: vol + disc + mc + mix + metal == delta_gp (mathematical invariant)
+  - **Isolation gate PASSED**: Business B returns zeros even when Business A has large sales
+  - **Security gate PASSED**: Cross-tenant profit-diagnosis access returns 403
+  - Ground truth computed from seeded MySQL data (June vs May 2026, business_id=1)
+
+- [ ] **Phase 10: Inventory Intelligence Engine**
+  *   Create `backend/app/services/inventory_service.py`
+  *   Ageing buckets: 0-30, 31-90, 91-180, 181-365, 365+ days
+  *   Stock Coverage: inventory_weight / avg_daily_sales_weight (30d)
+  *   Dead Stock: age > 180 days AND 0 sales in 90 days
+  *   Stockout Risk: fast mover AND coverage < 15 days
+  *   Expose under /api/businesses/{id}/analytics/inventory/
+  *   Write test_inventory.py with isolation tests
 
 ---
 

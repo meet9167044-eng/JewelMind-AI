@@ -21,6 +21,7 @@ from backend.app.database import get_db
 from backend.app.dependencies.business import get_owned_business
 from backend.app.models.business import Business
 from backend.app.services import analytics_service
+from backend.app.services import profit_diagnosis_service
 
 router = APIRouter(
     prefix="/api/businesses/{business_id}/analytics",
@@ -127,4 +128,40 @@ def compare_months(
         business.business_id,
         year_b=year_b, month_b=month_b,
         year_a=year_a, month_a=month_a,
+    )
+
+
+# ── Profit Diagnosis ──────────────────────────────────────────────────────────
+
+@router.get(
+    "/profit-diagnosis",
+    summary="Variance decomposition: explain GP change between two months",
+)
+def profit_diagnosis(
+    target_year:    int = Query(..., description="Target month year (e.g. 2026)",  ge=2000, le=2100),
+    target_month:   int = Query(..., description="Target month number (1-12)",      ge=1,    le=12),
+    baseline_year:  int = Query(..., description="Baseline month year (e.g. 2026)", ge=2000, le=2100),
+    baseline_month: int = Query(..., description="Baseline month number (1-12)",    ge=1,    le=12),
+    business: Business = Depends(get_owned_business),
+    db: Session = Depends(get_db),
+):
+    """
+    Decomposes total Gross Profit change between two months into
+    **5 additive independent drivers** (ANALYTICS_FORMULAS.md Section 2):
+
+    - **volume**        — impact of selling more/less total weight
+    - **discount**      — impact of change in discount rate per gram
+    - **making_charge** — impact of change in making-charge rate per gram
+    - **product_mix**   — impact of shift in category weight proportions
+    - **metal_margin**  — residual (metal acquisition cost fluctuations)
+
+    All five drivers sum exactly to `delta_gp`.
+    """
+    return profit_diagnosis_service.analyze_profit_change(
+        db,
+        business_id=business.business_id,
+        target_year=target_year,
+        target_month=target_month,
+        baseline_year=baseline_year,
+        baseline_month=baseline_month,
     )
