@@ -14,11 +14,11 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 |---|---|---|---|
 | **Phase 1** | Domain & Architecture Locking | Documentation & Specs | **Completed** |
 | **Phase 2** | Synthetic Data Generator | Data Generation & Ground Truth | **Completed** |
-| **Phase 3** | Hand-Trace & Verification | Math Verification | *Next* |
-| **Phase 4** | FastAPI Infrastructure | Backend Foundation | *Pending* |
-| **Phase 5** | Authentication (Register/Login) | User Auth & JWT | *Pending* |
-| **Phase 6** | Business Management | Multi-Tenant Business Layer | *Pending* |
-| **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | *Pending* |
+| **Phase 3** | Hand-Trace & Verification | Math Verification | **Completed** |
+| **Phase 4** | FastAPI Infrastructure | Backend Foundation | **Completed** |
+| **Phase 5** | Authentication (Register/Login) | User Auth & JWT | **Completed** |
+| **Phase 6** | Business Management | Multi-Tenant Business Layer | **Completed** |
+| **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | *Next* |
 | **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | *Pending* |
 | **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | *Pending* |
 | **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | *Pending* |
@@ -69,16 +69,30 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 - [x] **Architecture upgrade (2026-07-26)**: Replaced manual `metal_rates.csv` upload requirement with automated background **Metal Rates Fetch Service** (external API integration + background scheduler + fail-safe API fallback + MySQL global rate storage) across all documentation files.
 - [x] **Architecture upgrade (2026-07-26)**: Standardized entire project database stack to **MySQL (v8.0+)** with PyMySQL driver. Metal rates architecture updated: production uses configurable Metal Rate Fetch Service (env vars for provider/key abstraction), while `metal_rates.csv` is strictly a dev/testing fixture. Zero external network calls allowed in Analytics or AI Copilot.
 
----
+- [x] **Phase 3: Hand-Trace Verification (2026-07-26)**: Created `backend/scripts/verify_hand_trace.py`.
+  - Isolated product `GC202` (product_id=102): Gold Chain, 22K, 18.5 g.
+  - Cross-checked: all 20 sale rows have `cost_basis = 127,765.91` (exact match to `purchases.total_cost`).
+  - Manually traced: Gross Revenue, Net Revenue, COGS, Gross Profit, Gross Margin %, Making Charge per gram.
+  - Key finding: GC202 shows a **-2.24% gross margin** across 20 sales — driven by heavy June discounts (Scenario A). This is intentional synthetic data behaviour; the analytics engine must handle negative margins.
+  - All formula assertions passed. Script verified against `ANALYTICS_FORMULAS.md` Section 1.
 
-## Immediate Next Tasks (Phase 3)
+## Immediate Next Tasks (Phase 7)
 
-- [ ] **Phase 3: Hand-Trace Verification**
-  *   Pick product `GC202` (product_id=102) from `data/products.csv`.
-  *   Trace its purchase record in `data/purchases.csv` and all sales in `data/sales.csv`.
-  *   Manually compute Net Revenue, COGS, Gross Profit, and Making Charge per gram.
-  *   Verify they match the formulas in `docs/ANALYTICS_FORMULAS.md` Section 1.
-  *   Create `backend/scripts/verify_hand_trace.py` asserting all calculations are exact.
+- [x] **Phase 6: Business Management** — COMPLETE. 10/10 tests passed. Full regression: **25/25 passed**.
+  - `backend/app/models/business.py` — SQLAlchemy Business model (FK to users, CASCADE delete)
+  - `backend/app/schemas/business.py` — CreateBusinessRequest, BusinessResponse
+  - `backend/app/services/business_service.py` — create_business, list_businesses, get_business_if_owner
+  - `backend/app/dependencies/business.py` — get_owned_business (core multi-tenancy security gate)
+  - `backend/app/routers/businesses.py` — GET/POST /api/businesses, GET /api/businesses/{id}
+  - **Security gate PASSED**: User B JWT returns 403 when accessing User A's business_id
+  - **Enumeration protection PASSED**: Non-existent business_id returns 403 (not 404)
+
+- [ ] **Phase 7: Core DB Models & Data Seeding**
+  *   Create `backend/app/models/product.py`, `purchase.py`, `sale.py` (all with `business_id` FK)
+  *   Create `backend/app/models/metal_rate.py` (global table, PK: `rate_date DATE`, no `business_id`)
+  *   Run Alembic migration to create all tables in MySQL
+  *   Create `backend/scripts/seed_db.py` — seeds demo user + business + CSV data into MySQL
+  *   Verify: all tables created in MySQL, seed script runs cleanly, row counts match CSVs
 
 ---
 
