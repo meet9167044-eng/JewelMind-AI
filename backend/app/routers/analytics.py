@@ -165,3 +165,57 @@ def profit_diagnosis(
         baseline_year=baseline_year,
         baseline_month=baseline_month,
     )
+
+
+# ── Inventory Intelligence ────────────────────────────────────────────────────
+
+from backend.app.services import inventory_service  # noqa: E402
+
+
+@router.get(
+    "/inventory-age",
+    summary="Inventory ageing report: groups unsold stock into 5 ageing buckets",
+)
+def get_inventory_age(
+    as_of_date: date | None = Query(None, description="Reference date (default: today). Format: YYYY-MM-DD"),
+    business: Business = Depends(get_owned_business),
+    db: Session = Depends(get_db),
+):
+    """
+    Returns unsold inventory grouped into ageing buckets per
+    ANALYTICS_FORMULAS.md §3.A:
+
+    - **0-30d** / **31-90d** / **91-180d** / **181-365d** / **365+d**
+
+    Each bucket shows item count, total weight (g), and total value (cost).
+    A per-item detail list is also returned, sorted by age descending.
+    """
+    return inventory_service.calculate_inventory_age(
+        db, business.business_id, as_of_date=as_of_date
+    )
+
+
+@router.get(
+    "/inventory-performance",
+    summary="Inventory classification: dead stock, slow movers, stockout risks",
+)
+def get_inventory_performance(
+    as_of_date: date | None = Query(None, description="Reference date (default: today). Format: YYYY-MM-DD"),
+    coverage_lookback_days: int = Query(30, description="Lookback window for avg daily sales (default: 30)", ge=7, le=180),
+    business: Business = Depends(get_owned_business),
+    db: Session = Depends(get_db),
+):
+    """
+    Classifies active inventory per ANALYTICS_FORMULAS.md §3.C:
+
+    - **dead_stock**      — age > 180 days AND 0 sales in last 90 days
+    - **slow_movers**     — stock coverage > 180 days
+    - **stockout_risks**  — fast mover AND coverage < 15 days
+
+    Also returns per-category stock coverage in days.
+    """
+    return inventory_service.classify_inventory_performance(
+        db, business.business_id,
+        as_of_date=as_of_date,
+        coverage_lookback_days=coverage_lookback_days,
+    )

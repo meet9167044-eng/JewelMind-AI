@@ -21,8 +21,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | **Completed** |
 | **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | **Completed** |
 | **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | **Completed** |
-| **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | *Next* |
-| **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | *Pending* |
+| **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | **Completed** |
+| **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | *Next* |
 | **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Pending* |
 | **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | *Pending* |
 | **Phase 14** | AI Copilot & Tool Calling | LLM & View Evidence (scoped) | *Pending* |
@@ -94,14 +94,20 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - **Security gate PASSED**: Cross-tenant profit-diagnosis access returns 403
   - Ground truth computed from seeded MySQL data (June vs May 2026, business_id=1)
 
-- [ ] **Phase 10: Inventory Intelligence Engine**
-  *   Create `backend/app/services/inventory_service.py`
-  *   Ageing buckets: 0-30, 31-90, 91-180, 181-365, 365+ days
-  *   Stock Coverage: inventory_weight / avg_daily_sales_weight (30d)
-  *   Dead Stock: age > 180 days AND 0 sales in 90 days
-  *   Stockout Risk: fast mover AND coverage < 15 days
-  *   Expose under /api/businesses/{id}/analytics/inventory/
-  *   Write test_inventory.py with isolation tests
+- [x] **Phase 10: Inventory Intelligence Engine** — COMPLETE. 13/13 tests. Full regression: **57/57 passed**.
+  - `backend/app/services/inventory_service.py` — calculate_inventory_age() + classify_inventory_performance()
+  - `GET /api/businesses/{id}/analytics/inventory-age` — 5 ageing buckets (0-30d to 365+d)
+  - `GET /api/businesses/{id}/analytics/inventory-performance` — dead stock, slow movers, stockout risks
+  - **Isolation gate PASSED**: Business B inventory is always 0 when only Business A has stock
+  - **Dead stock gate PASSED**: age > 180d AND 0 sales in 90d; guarded against false positives
+  - **Security gate PASSED**: Cross-tenant inventory access returns 403
+
+- [ ] **Phase 11: Metal Exposure & Scenario Engine**
+  *   Create `backend/app/services/metal_service.py` (WAR, Valuation Exposure, Scenario Sim)
+  *   Create `backend/app/services/metal_rate_fetcher.py` (provider abstraction, external API)
+  *   Create `backend/app/services/scheduler.py` (APScheduler background job, fail-safe fallback)
+  *   Create `backend/tests/test_metal.py`
+  *   Expose metal endpoints under /api/businesses/{id}/analytics/metal/
 
 ---
 
