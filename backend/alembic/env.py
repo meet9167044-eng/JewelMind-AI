@@ -36,6 +36,10 @@ from backend.app.database import Base  # noqa: F401
 # Add each new model module as it is created in subsequent phases.
 from backend.app.models import user as _user_model  # noqa: F401
 from backend.app.models import business as _business_model  # noqa: F401
+from backend.app.models import product as _product_model  # noqa: F401
+from backend.app.models import purchase as _purchase_model  # noqa: F401
+from backend.app.models import sale as _sale_model  # noqa: F401
+from backend.app.models import metal_rate as _metal_rate_model  # noqa: F401
 
 # Provide the metadata for autogenerate
 target_metadata = Base.metadata

@@ -18,9 +18,9 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 4** | FastAPI Infrastructure | Backend Foundation | **Completed** |
 | **Phase 5** | Authentication (Register/Login) | User Auth & JWT | **Completed** |
 | **Phase 6** | Business Management | Multi-Tenant Business Layer | **Completed** |
-| **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | *Next* |
-| **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | *Pending* |
-| **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | *Pending* |
+| **Phase 7** | Core DB Models & Data Seeding | Database Persistence (business_id) | **Completed** |
+| **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | **Completed** |
+| **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | *Next* |
 | **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | *Pending* |
 | **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | *Pending* |
 | **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Pending* |
@@ -76,23 +76,22 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - Key finding: GC202 shows a **-2.24% gross margin** across 20 sales — driven by heavy June discounts (Scenario A). This is intentional synthetic data behaviour; the analytics engine must handle negative margins.
   - All formula assertions passed. Script verified against `ANALYTICS_FORMULAS.md` Section 1.
 
-## Immediate Next Tasks (Phase 7)
+## Immediate Next Tasks (Phase 9)
 
-- [x] **Phase 6: Business Management** — COMPLETE. 10/10 tests passed. Full regression: **25/25 passed**.
-  - `backend/app/models/business.py` — SQLAlchemy Business model (FK to users, CASCADE delete)
-  - `backend/app/schemas/business.py` — CreateBusinessRequest, BusinessResponse
-  - `backend/app/services/business_service.py` — create_business, list_businesses, get_business_if_owner
-  - `backend/app/dependencies/business.py` — get_owned_business (core multi-tenancy security gate)
-  - `backend/app/routers/businesses.py` — GET/POST /api/businesses, GET /api/businesses/{id}
-  - **Security gate PASSED**: User B JWT returns 403 when accessing User A's business_id
-  - **Enumeration protection PASSED**: Non-existent business_id returns 403 (not 404)
+- [x] **Phase 8: Core Analytics Service** — COMPLETE. 11/11 tests. Full regression: **36/36 passed**.
+  - `backend/app/services/analytics_service.py` — calculate_revenue, calculate_cogs, calculate_gross_profit, compare_months
+  - `backend/app/routers/analytics.py` — GET /revenue, /cogs, /gross-profit, /compare-months (all under /api/businesses/{id}/analytics/)
+  - All routes protected by `get_owned_business` dependency
+  - **Isolation gate PASSED**: Business A revenue excludes Business B sales
+  - **Security gate PASSED**: Cross-tenant analytics access returns 403
+  - Negative gross margin handled correctly (Scenario A from Phase 3 ground truth)
 
-- [ ] **Phase 7: Core DB Models & Data Seeding**
-  *   Create `backend/app/models/product.py`, `purchase.py`, `sale.py` (all with `business_id` FK)
-  *   Create `backend/app/models/metal_rate.py` (global table, PK: `rate_date DATE`, no `business_id`)
-  *   Run Alembic migration to create all tables in MySQL
-  *   Create `backend/scripts/seed_db.py` — seeds demo user + business + CSV data into MySQL
-  *   Verify: all tables created in MySQL, seed script runs cleanly, row counts match CSVs
+- [ ] **Phase 9: Flagship Profit Diagnosis Engine (Variance Decomposition)**
+  *   Create `backend/app/services/profit_diagnosis_service.py`
+  *   Implement `analyze_profit_change(db, business_id, target_month, baseline_month)`
+  *   5 drivers: Volume, Discount, Making Charge, Mix, Metal Margin
+  *   Expose POST /api/businesses/{business_id}/analytics/profit-diagnosis
+  *   Assert ground truth: June vs May → volume ~-₹52K, discount ~-₹31K, making charge ~-₹21K, mix ~-₹14K
 
 ---
 

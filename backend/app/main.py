@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.database import check_db_connection
 from backend.app.routers import auth as auth_router
 from backend.app.routers import businesses as businesses_router
+from backend.app.routers import analytics as analytics_router
 
 # ---------------------------------------------------------------------------
 # Application instance
@@ -51,6 +52,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 app.include_router(auth_router.router)
 app.include_router(businesses_router.router)
+app.include_router(analytics_router.router)
 
 
 # ---------------------------------------------------------------------------
