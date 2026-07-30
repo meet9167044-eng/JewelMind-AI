@@ -20,6 +20,7 @@ from backend.app.routers import auth as auth_router
 from backend.app.routers import businesses as businesses_router
 from backend.app.routers import analytics as analytics_router
 from backend.app.routers import metal as metal_router
+from backend.app.routers import upload as upload_router
 from backend.app.services import scheduler as scheduler_service
 
 
@@ -76,6 +77,7 @@ app.include_router(auth_router.router)
 app.include_router(businesses_router.router)
 app.include_router(analytics_router.router)
 app.include_router(metal_router.router)
+app.include_router(upload_router.router)
 
 
 # ---------------------------------------------------------------------------

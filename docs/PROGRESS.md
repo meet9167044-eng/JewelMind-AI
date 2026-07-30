@@ -23,8 +23,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | **Completed** |
 | **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | **Completed** |
 | **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | **Completed** |
-| **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Next* |
-| **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | *Pending* |
+| **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | **Completed** |
+| **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | *Next* |
 | **Phase 14** | AI Copilot & Tool Calling | LLM & View Evidence (scoped) | *Pending* |
 | **Phase 15** | Action Center & Insights | Proactive Alert Engine | *Pending* |
 | **Phase 16** | E2E Testing & Demo Narrative | Testing & Presentation | *Pending* |
