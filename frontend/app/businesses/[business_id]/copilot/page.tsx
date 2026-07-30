@@ -2,12 +2,14 @@
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import PageHeader from '@/components/ui/PageHeader'
+import ViewEvidenceModal from '@/components/copilot/ViewEvidenceModal'
+import { api } from '@/lib/api'
 import { Bot, Send, User, Sparkles, FileText } from 'lucide-react'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
-  evidence?: { tool: string; result: any }
+  evidence?: any
 }
 
 export default function CopilotPage() {
@@ -22,36 +24,32 @@ export default function CopilotPage() {
     },
   ])
   const [thinking, setThinking] = useState(false)
+  const [selectedEvidence, setSelectedEvidence] = useState<any>(null)
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return
     const userMsg = input.trim()
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: userMsg }])
     setThinking(true)
 
-    // Phase 14 mock / preview interaction until Phase 14 LLM integration
-    setTimeout(() => {
-      let reply = "I analyzed your latest business metrics for this business."
-      let evidenceData = null
-
-      if (userMsg.toLowerCase().includes('profit') || userMsg.toLowerCase().includes('margin')) {
-        reply = "In June 2026, your gross profit increased by ₹12.5k. The primary positive driver was Making Charge rate improvement (+₹15.0k), offset slightly by Product Mix shifts."
-        evidenceData = { tool: "get_profit_diagnosis", result: { target_profit: 65000, baseline_profit: 52500, delta: 12500 } }
-      } else if (userMsg.toLowerCase().includes('inventory') || userMsg.toLowerCase().includes('dead')) {
-        reply = "You currently have 17 items classified as Dead Stock (>180 days old with zero sales in the last 90 days), representing ~150.5g of gold inventory."
-        evidenceData = { tool: "get_inventory_performance", result: { dead_stock_count: 17, total_weight: 150.5 } }
-      } else if (userMsg.toLowerCase().includes('metal') || userMsg.toLowerCase().includes('gold')) {
-        reply = "Your Gold Weighted Acquisition Rate (WAR) is ₹6,200/g. At today's board rate of ₹7,200/g, your paper valuation exposure is positive (+₹100.0k above cost basis)."
-        evidenceData = { tool: "get_metal_exposure", result: { metal: "gold", war: 6200, current_rate: 7200 } }
-      }
-
+    try {
+      const res = await api.post<{ response_text: string; evidence: any }>(
+        `/api/businesses/${bizId}/copilot/ask`,
+        { question: userMsg }
+      )
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: reply, evidence: evidenceData || undefined },
+        { role: 'assistant', content: res.response_text, evidence: res.evidence },
       ])
+    } catch (e: any) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: `Sorry, I encountered an error: ${e.message}` },
+      ])
+    } finally {
       setThinking(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -82,9 +80,13 @@ export default function CopilotPage() {
                 {m.evidence && (
                   <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                     <FileText size={12} color="var(--gold)" />
-                    <span className="text-xs text-gold" style={{ cursor: 'pointer' }}>
+                    <button
+                      onClick={() => setSelectedEvidence(m.evidence)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                      className="text-xs text-gold"
+                    >
                       View Evidence ({m.evidence.tool})
-                    </span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -120,6 +122,9 @@ export default function CopilotPage() {
           </button>
         </div>
       </div>
+
+      {/* Evidence Modal */}
+      <ViewEvidenceModal evidence={selectedEvidence} onClose={() => setSelectedEvidence(null)} />
     </div>
   )
 }
