@@ -22,8 +22,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 8** | Core Analytics Service | Basic Analytics (scoped) | **Completed** |
 | **Phase 9** | Profit Diagnosis Engine | Variance Decomposition | **Completed** |
 | **Phase 10** | Inventory Intelligence Engine | Ageing & Coverage | **Completed** |
-| **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | *Next* |
-| **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Pending* |
+| **Phase 11** | Metal Exposure & Scenario Engine | Risk & Simulation | **Completed** |
+| **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | *Next* |
 | **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | *Pending* |
 | **Phase 14** | AI Copilot & Tool Calling | LLM & View Evidence (scoped) | *Pending* |
 | **Phase 15** | Action Center & Insights | Proactive Alert Engine | *Pending* |
@@ -102,12 +102,24 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
   - **Dead stock gate PASSED**: age > 180d AND 0 sales in 90d; guarded against false positives
   - **Security gate PASSED**: Cross-tenant inventory access returns 403
 
-- [ ] **Phase 11: Metal Exposure & Scenario Engine**
-  *   Create `backend/app/services/metal_service.py` (WAR, Valuation Exposure, Scenario Sim)
-  *   Create `backend/app/services/metal_rate_fetcher.py` (provider abstraction, external API)
-  *   Create `backend/app/services/scheduler.py` (APScheduler background job, fail-safe fallback)
-  *   Create `backend/tests/test_metal.py`
-  *   Expose metal endpoints under /api/businesses/{id}/analytics/metal/
+- [x] **Phase 11: Metal Exposure & Scenario Engine** — COMPLETE. 17/17 tests. Full regression: **74/74 passed**.
+  - `backend/app/services/metal_rate_fetcher.py` — AbstractMetalRateProvider interface, GoldAPIProvider, fail-safe fetch_and_store_today()
+  - `backend/app/services/scheduler.py` — APScheduler BackgroundScheduler, starts/stops via FastAPI lifespan
+  - `backend/app/services/metal_service.py` — WAR (§4.A), Valuation Exposure (§4.B), Scenario Simulation (§5.A-C)
+  - `backend/app/routers/metal.py` — GET /rates, /exposure/{metal}, /simulate/{metal}
+  - **Fail-safe gate PASSED**: fetch failure returns False, never raises, analytics unaffected
+  - **Isolation gate PASSED**: Biz B exposure = 0 when Biz A has gold inventory
+  - **Additive check PASSED**: delta_value == simulated_exposure − current_exposure
+  - **Rule 21 COMPLIANT**: metal_service makes zero external network calls
+
+- [ ] **Phase 12: Data Upload & Validation Pipeline**
+  *   Create `backend/app/services/upload_service.py`
+  *   Create `backend/app/routers/upload.py`
+  *   CSV/Excel upload for Products, Purchases, Sales
+  *   Validation: required columns, non-negative weights/prices, date formats
+  *   business_id injected server-side (never from the file)
+  *   Data Quality Report on upload response
+  *   Write test_upload.py with isolation tests
 
 ---
 
