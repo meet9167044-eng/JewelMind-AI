@@ -691,17 +691,17 @@ Perform end-to-end verification, finalize UI polish, run automated test suites, 
 
 - [x] **Phase 1**: Domain & Architecture Locking
 - [x] **Phase 2**: Synthetic Data Generator
-- [ ] **Phase 3**: Hand-Trace Verification
-- [ ] **Phase 4**: FastAPI Infrastructure
-- [ ] **Phase 5**: Authentication (Register/Login/JWT)
-- [ ] **Phase 6**: Business Management (Multi-Tenant Layer)
-- [ ] **Phase 7**: Core DB Models & Data Seeding (with business_id)
-- [ ] **Phase 8**: Core Analytics Service (business_id scoped)
-- [ ] **Phase 9**: Profit Diagnosis Engine (business_id scoped)
-- [ ] **Phase 10**: Inventory Intelligence Engine (business_id scoped)
-- [ ] **Phase 11**: Metal Exposure & Scenario Engine (business_id scoped)
-- [ ] **Phase 12**: Data Upload Pipeline (business tagging)
-- [ ] **Phase 13**: Next.js Frontend (auth + business hub + analytics)
-- [ ] **Phase 14**: AI Copilot & View Evidence (business_id scoped)
+- [x] **Phase 3**: Hand-Trace Verification
+- [x] **Phase 4**: FastAPI Infrastructure
+- [x] **Phase 5**: Authentication (Register/Login/JWT)
+- [x] **Phase 6**: Business Management (Multi-Tenant Layer)
+- [x] **Phase 7**: Core DB Models & Data Seeding (with business_id)
+- [x] **Phase 8**: Core Analytics Service (business_id scoped)
+- [x] **Phase 9**: Profit Diagnosis Engine (business_id scoped)
+- [x] **Phase 10**: Inventory Intelligence Engine (business_id scoped)
+- [x] **Phase 11**: Metal Exposure & Scenario Engine (business_id scoped)
+- [x] **Phase 12**: Data Upload Pipeline (business tagging)
+- [x] **Phase 13**: Next.js Frontend (auth + business hub + analytics)
+- [x] **Phase 14**: AI Copilot & View Evidence (business_id scoped)
 - [ ] **Phase 15**: Action Center & Insights (business_id scoped)
 - [ ] **Phase 16**: E2E Testing & Demo Narrative

@@ -1,33 +1,33 @@
 # JewelMind-AI: Jewellery Business Intelligence Copilot
 
-A **multi-business SaaS platform** built specifically for retail jewellers. Each user registers an account, creates one or more named jewellery businesses, uploads their own data, and gets explainable analytics powered by deterministic Python/SQL and an AI Copilot that explains results — never calculates them.
+A **multi-business SaaS platform** built specifically for retail jewellers. Each user registers an account, creates one or more named jewellery businesses, uploads their store data (products, purchases, sales), and gets explainable analytics powered by deterministic Python/SQL and an AI Copilot that explains results — never calculates them.
 
 ---
 
 ## What It Does
 
-A retail jeweller logs in, selects their business, uploads their store data (products, purchases, sales), while the system automatically fetches current metal rates, and can ask questions in plain English:
+A retail jeweller logs in, selects their business, uploads their store data, while the system automatically fetches current metal rates, and can ask questions in plain English:
 
-- *"Why did my profit fall in June?"* — System decomposes the change into volume, discount, making-charge, and product-mix effects. AI explains each driver with evidence.
-- *"Where is my money stuck?"* — System classifies aged inventory, dead stock, and stockout risks.
-- *"What if silver falls 10%?"* — System calculates simulated valuation exposure for this business's current inventory.
+- *"Why did my profit fall in June?"* — System decomposes the change into 5 additive drivers (volume, discount, making-charge, product-mix, metal-margin). AI explains each driver with View Evidence audit trace.
+- *"Where is my money stuck?"* — System classifies 5 inventory ageing buckets, dead stock (>180d no sales), and stockout risks.
+- *"What if silver falls 10%?"* — System calculates Weighted Acquisition Rate (WAR) and simulated valuation exposure float for this business's current inventory.
 
-All results are scoped to the authenticated user's selected business. No business can access another's data.
+All results are strictly scoped to the authenticated user's selected business. No business can access another's data.
 
 ---
 
-## Core Philosophy: Explainable AI
+## Core Philosophy: Explainable AI (XAI)
 
-$$\text{Data (per business)} \longrightarrow \text{Mathematics} \longrightarrow \text{Analysis} \longrightarrow \text{AI Explanation} \longrightarrow \text{Decision Support}$$
+$$\text{Data (per business)} \longrightarrow \text{Mathematics} \longrightarrow \text{Analysis} \longrightarrow \text{AI Explanation} \longrightarrow \text{View Evidence Trace}$$
 
-Under no circumstances does the LLM perform financial calculations. All financial analysis is executed using deterministic Python (Pandas) and SQL, always filtered by `business_id`. The AI acts exclusively as an interpreter of verified results.
+Under no circumstances does the LLM perform financial calculations. All financial analysis is executed using deterministic Python (Pandas) and SQL, always filtered by `business_id`. The AI acts exclusively as an interpreter of verified results, providing a **[View Evidence]** trace button that maps every statement down to mathematical formulas and source database tables.
 
 ---
 
 ## Multi-Business SaaS Architecture
 
 ```
-User (registers once)
+User (registers once via JWT auth)
   └── Business 1: "Rajesh Jewellers"
        ├── products   (business_id = 1)
        ├── purchases  (business_id = 1)
@@ -40,18 +40,49 @@ Global Reference Data (Shared):
 - Every store transaction table (`products`, `purchases`, `sales`) includes a `business_id` foreign key.
 - `metal_rates` is a global market reference table shared across all businesses (`rate_date DATE PRIMARY KEY`).
 - Every analytics query for store transactions is filtered by `business_id`.
-- `business_id` is resolved server-side from the JWT session — never trusted from the frontend.
+- `business_id` is resolved server-side from the JWT session — never trusted from the frontend or LLM.
 
 ---
 
 ## Technology Stack
 
-*   **Frontend**: Next.js, TypeScript, Tailwind CSS, shadcn/ui, Recharts
-*   **Backend**: FastAPI (Python), SQLAlchemy ORM, Alembic migrations
-*   **Auth**: JWT (python-jose), bcrypt password hashing
+*   **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Recharts, Lucide Icons, Custom Luxury Dark-Mode Design System
+*   **Backend**: FastAPI (Python 3.13), SQLAlchemy 2.0 ORM, Alembic migrations, APScheduler
+*   **Auth**: JWT, bcrypt password hashing
+*   **AI Engine**: Google Gemini SDK (`google-genai`), function calling with 4 analytics tools, 8-guardrail system prompt
 *   **Database**: MySQL (v8.0+) with PyMySQL driver
 *   **Data Analysis**: Pandas, NumPy
-*   **Testing**: pytest
+*   **Testing**: pytest (104 backend tests, 100% passing)
+
+---
+
+## Quickstart (Local Development)
+
+### 1. Database Setup
+Create MySQL database and set credentials in `.env`:
+```sql
+CREATE DATABASE jewelmind_db;
+```
+
+### 2. Backend Server
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.app.main:app --reload --port 8000
+```
+API Documentation available at: `http://localhost:8000/docs`
+
+### 3. Frontend App
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open web application at: `http://localhost:3000`
+
+### 4. Run Test Suite
+```bash
+python -m pytest backend/tests/ -v
+```
 
 ---
 
@@ -73,18 +104,22 @@ All core system designs, requirements, rules, and formulations are in `/docs`:
 
 ---
 
-## Development Workflow
-
-Before writing code, always run through this loop:
-
-1. Read **[PROJECT_RULES.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_RULES.md)** and **[PROGRESS.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROGRESS.md)**.
-2. Implement the feature, filtering all queries by `business_id`.
-3. Write tests — include a multi-tenancy isolation test (business A's data must not appear for business B).
-4. Verify via Swagger and integration test.
-5. Commit to Git at the feature level.
-
----
-
 ## Project Status
 
-Phase 1 (Documentation) and Phase 2 (Synthetic Data Generator) are complete. Phase 3 (Hand-Trace Verification) is next. The project has 16 planned implementation phases in total — see [PROJECT_PLAN.md](file:///c:/Users/MEET%20JAIN/JewelMind-AI/docs/PROJECT_PLAN.md).
+**Phases 1 through 14 are COMPLETED** (14/16 phases complete, 104/104 tests passing):
+- ✅ Phase 1: Domain & Architecture Locking
+- ✅ Phase 2: Synthetic Data Generator
+- ✅ Phase 3: Hand-Trace Verification
+- ✅ Phase 4: FastAPI Infrastructure
+- ✅ Phase 5: Authentication (Register/Login/JWT)
+- ✅ Phase 6: Business Management (Multi-Tenant Layer)
+- ✅ Phase 7: Core DB Models & Data Seeding
+- ✅ Phase 8: Core Analytics Service
+- ✅ Phase 9: Profit Diagnosis Engine
+- ✅ Phase 10: Inventory Intelligence Engine
+- ✅ Phase 11: Metal Exposure & Scenario Engine
+- ✅ Phase 12: Data Upload Pipeline
+- ✅ Phase 13: Next.js Frontend (All 11 pages & luxury dark-mode design system)
+- ✅ Phase 14: AI Copilot & View Evidence (Gemini SDK + tool calling + audit trace)
+- ⏳ Phase 15: Action Center & Proactive Insights Engine (*Next*)
+- ⏳ Phase 16: E2E Testing & Demo Narrative
