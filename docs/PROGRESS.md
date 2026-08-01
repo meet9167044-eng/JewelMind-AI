@@ -26,8 +26,8 @@ The detailed, 16-phase implementation roadmap, Cursor prompt templates, and veri
 | **Phase 12** | Data Upload Pipeline | Ingestion & Business Tagging | **Completed** |
 | **Phase 13** | Next.js Frontend | Web UI, Auth, Business Hub, Charts | **Completed** |
 | **Phase 14** | AI Copilot & Tool Calling | LLM & View Evidence (scoped) | **Completed** |
-| **Phase 15** | Action Center & Insights | Proactive Alert Engine | *Next* |
-| **Phase 16** | E2E Testing & Demo Narrative | Testing & Presentation | *Pending* |
+| **Phase 15** | Action Center & Insights | Proactive Alert Engine | **Completed** |
+| **Phase 16** | E2E Testing & Demo Narrative | Testing & Presentation | **Completed** |
 
 ---
 

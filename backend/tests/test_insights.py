@@ -94,15 +94,16 @@ def _seed_product(db: Session, bid: int, sku: str) -> Product:
 def _seed_old_purchase(db: Session, bid: int, product_id: int, metal_cost: float, days_ago: int = 200):
     old_date = date.today() - timedelta(days=days_ago)
     pur = Purchase(
-        business_id=bid, product_id=product_id, weight=10.0,
-        metal_cost=metal_cost, making_charge=500.0, purchase_date=old_date,
+        business_id=bid, product_id=product_id, quantity=1, weight=10.0,
+        metal_rate=metal_cost/10.0, metal_cost=metal_cost, making_cost=500.0,
+        total_cost=metal_cost + 500.0, purchase_date=old_date,
     )
     db.add(pur); db.commit()
 
 
 def _seed_sale(db: Session, bid: int, product_id: int, weight: float = 5.0):
     s = Sale(
-        business_id=bid, product_id=product_id, weight=weight,
+        business_id=bid, product_id=product_id, quantity=1, weight=weight,
         selling_price=10000.0, discount=300.0, making_charge=500.0,
         cost_basis=7000.0, sale_date=datetime.now(),
     )
@@ -162,15 +163,16 @@ def test_stockout_warning_triggers_medium_alert(db):
     # Purchase 2 units, sell 1.8 units rapidly over last 30 days → coverage < 15d
     purchase_date = date.today() - timedelta(days=5)
     pur = Purchase(
-        business_id=biz.business_id, product_id=prod.product_id, weight=2.0,
-        metal_cost=14_000.0, making_charge=400.0, purchase_date=purchase_date,
+        business_id=biz.business_id, product_id=prod.product_id, quantity=1, weight=2.0,
+        metal_rate=7000.0, metal_cost=14_000.0, making_cost=400.0, total_cost=14_400.0,
+        purchase_date=purchase_date,
     )
     db.add(pur); db.commit()
 
     # 3 recent sales consuming most of the stock
     for _ in range(3):
         s = Sale(
-            business_id=biz.business_id, product_id=prod.product_id, weight=0.5,
+            business_id=biz.business_id, product_id=prod.product_id, quantity=1, weight=0.5,
             selling_price=8000.0, discount=200.0, making_charge=400.0,
             cost_basis=5000.0,
             sale_date=datetime.now() - timedelta(days=1),

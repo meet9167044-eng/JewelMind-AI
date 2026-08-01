@@ -703,5 +703,5 @@ Perform end-to-end verification, finalize UI polish, run automated test suites, 
 - [x] **Phase 12**: Data Upload Pipeline (business tagging)
 - [x] **Phase 13**: Next.js Frontend (auth + business hub + analytics)
 - [x] **Phase 14**: AI Copilot & View Evidence (business_id scoped)
-- [ ] **Phase 15**: Action Center & Insights (business_id scoped)
-- [ ] **Phase 16**: E2E Testing & Demo Narrative
+- [x] **Phase 15**: Action Center & Insights (business_id scoped)
+- [x] **Phase 16**: E2E Testing & Demo Narrative
