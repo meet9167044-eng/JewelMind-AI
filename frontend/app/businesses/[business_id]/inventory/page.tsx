@@ -77,12 +77,14 @@ export default function InventoryPage() {
         <h3 className="text-title" style={{ marginBottom: '1.25rem' }}>Ageing Breakdown (Days Unsold)</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
           {['0-30d', '31-90d', '91-180d', '181-365d', '365+d'].map((bKey) => {
-            const b = buckets[bKey] || { count: 0, total_weight: 0, total_value: 0 }
+            const b = buckets[bKey] || { count: 0, weight: 0, value: 0 }
+            const w = b.weight ?? b.total_weight ?? 0
+            const v = b.value ?? b.total_value ?? 0
             return (
               <div key={bKey} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
                 <p className="text-label" style={{ color: 'var(--gold)', marginBottom: 4 }}>{bKey}</p>
-                <p style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 4px' }}>{b.count} items</p>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)', margin: 0 }}>{b.total_weight.toFixed(1)} g • ₹{(b.total_value/1000).toFixed(1)}k</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 4px' }}>{b.count ?? 0} items</p>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)', margin: 0 }}>{w.toFixed(1)} g • ₹{(v / 1000).toFixed(1)}k</p>
               </div>
             )
           })}

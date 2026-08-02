@@ -180,8 +180,11 @@ def test_system_prompt_includes_business_name():
 
 def test_ask_failsafe_when_api_key_missing():
     """ask() returns safe setup notice if LLM_API_KEY is not set."""
-    copilot_service.LLM_API_KEY = ""
-    res = copilot_service.ask("Why did profit fall?", 1, "Test Biz", None) # type: ignore
+    from unittest.mock import patch, MagicMock
+    mock_settings = MagicMock()
+    mock_settings.llm_api_key = ""
+    with patch("backend.app.services.copilot_service._Settings", return_value=mock_settings):
+        res = copilot_service.ask("Why did profit fall?", 1, "Test Biz", None)  # type: ignore
     assert "LLM API key" in res["response_text"]
     assert res["evidence"] is None
 
@@ -191,12 +194,15 @@ def test_ask_failsafe_when_api_key_missing():
 # ---------------------------------------------------------------------------
 
 def test_api_copilot_ask_returns_200():
-    """POST /api/businesses/{id}/copilot/ask returns 200."""
+    """POST /api/businesses/{id}/copilot/ask returns 200 (fail-safe path)."""
+    from unittest.mock import patch, MagicMock
     token = _register_and_token("api_cop@test.com")
     biz_id = client.post("/api/businesses", json={"business_name": "Copilot Biz"}, headers=_auth(token)).json()["business_id"]
 
-    copilot_service.LLM_API_KEY = "" # ensure fail-safe path triggers cleanly
-    resp = client.post(f"/api/businesses/{biz_id}/copilot/ask", json={"question": "What is my gold exposure?"}, headers=_auth(token))
+    mock_settings = MagicMock()
+    mock_settings.llm_api_key = ""  # ensure fail-safe path triggers cleanly
+    with patch("backend.app.services.copilot_service._Settings", return_value=mock_settings):
+        resp = client.post(f"/api/businesses/{biz_id}/copilot/ask", json={"question": "What is my gold exposure?"}, headers=_auth(token))
     assert resp.status_code == 200
     body = resp.json()
     assert "response_text" in body

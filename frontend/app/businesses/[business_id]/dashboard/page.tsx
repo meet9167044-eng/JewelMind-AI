@@ -35,9 +35,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
         const [cur, prev] = await Promise.all([
           analyticsApi.grossProfit(bizId, now.getFullYear(), now.getMonth() + 1),
-          analyticsApi.grossProfit(bizId, now.getFullYear(), now.getMonth()),
+          analyticsApi.grossProfit(bizId, prevDate.getFullYear(), prevDate.getMonth() + 1),
         ])
         setMetrics({ current: cur, previous: prev })
 
@@ -46,7 +47,7 @@ export default function DashboardPage() {
           Array.from({ length: 6 }, (_, i) => {
             const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
             return analyticsApi.grossProfit(bizId, d.getFullYear(), d.getMonth() + 1)
-              .then((r: any) => ({ month: MONTHS[d.getMonth()], revenue: r.total_revenue, profit: r.gross_profit }))
+              .then((r: any) => ({ month: MONTHS[d.getMonth()], revenue: r.net_revenue, profit: r.gross_profit }))
               .catch(() => ({ month: MONTHS[d.getMonth()], revenue: 0, profit: 0 }))
           })
         )
@@ -62,8 +63,8 @@ export default function DashboardPage() {
 
   const cur = metrics?.current as any
   const prev = metrics?.previous as any
-  const revTrend = cur && prev && prev.total_revenue > 0
-    ? ((cur.total_revenue - prev.total_revenue) / prev.total_revenue) * 100 : undefined
+  const revTrend = cur && prev && prev.net_revenue > 0
+    ? ((cur.net_revenue - prev.net_revenue) / prev.net_revenue) * 100 : undefined
   const profitTrend = cur && prev && prev.gross_profit > 0
     ? ((cur.gross_profit - prev.gross_profit) / prev.gross_profit) * 100 : undefined
 
@@ -86,7 +87,7 @@ export default function DashboardPage() {
 
       {/* KPI Grid */}
       <div className="grid-kpi section-gap fade-up">
-        <KpiCard label="Total Revenue" value={loading ? '—' : fmt(cur?.total_revenue ?? 0)} trend={revTrend} accent="gold" />
+        <KpiCard label="Total Revenue" value={loading ? '—' : fmt(cur?.net_revenue ?? 0)} trend={revTrend} accent="gold" />
         <KpiCard label="Gross Profit" value={loading ? '—' : fmt(cur?.gross_profit ?? 0)} trend={profitTrend} accent="success" />
         <KpiCard label="Gross Margin" value={loading ? '—' : `${(cur?.gross_margin_pct ?? 0).toFixed(1)}%`} accent="silver" />
         <KpiCard label="Making Charge/g" value={loading ? '—' : `₹${(cur?.making_charge_per_gram ?? 0).toFixed(0)}`} accent="neutral" sub="per gram" />

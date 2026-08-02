@@ -17,7 +17,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err?.detail || `HTTP ${res.status}`)
+    let msg = `HTTP ${res.status}`
+    if (typeof err?.detail === 'string') {
+      msg = err.detail
+    } else if (Array.isArray(err?.detail)) {
+      msg = err.detail.map((d: any) => d.msg || JSON.stringify(d)).join('; ')
+    } else if (err?.message) {
+      msg = err.message
+    }
+    throw new Error(msg)
   }
   return res.json()
 }
@@ -36,7 +44,15 @@ export const api = {
     const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: formData })
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }))
-      throw new Error(err?.detail || `HTTP ${res.status}`)
+      let msg = `HTTP ${res.status}`
+      if (typeof err?.detail === 'string') {
+        msg = err.detail
+      } else if (Array.isArray(err?.detail)) {
+        msg = err.detail.map((d: any) => d.msg || JSON.stringify(d)).join('; ')
+      } else if (err?.message) {
+        msg = err.message
+      }
+      throw new Error(msg)
     }
     return res.json()
   },
@@ -58,8 +74,14 @@ export const businessApi = {
 }
 
 export const analyticsApi = {
-  grossProfit: (bizId: number, year: number, month: number) =>
-    api.get(`/api/businesses/${bizId}/analytics/gross-profit?year=${year}&month=${month}`),
+  grossProfit: (bizId: number, year: number, month: number) => {
+    // Backend expects start_date / end_date (YYYY-MM-DD), not year/month.
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const startDate = `${year}-${pad(month)}-01`
+    const lastDay = new Date(year, month, 0).getDate()  // day 0 of next month = last day of this
+    const endDate = `${year}-${pad(month)}-${pad(lastDay)}`
+    return api.get(`/api/businesses/${bizId}/analytics/gross-profit?start_date=${startDate}&end_date=${endDate}`)
+  },
   profitDiagnosis: (bizId: number, ty: number, tm: number, by: number, bm: number) =>
     api.get(`/api/businesses/${bizId}/analytics/profit-diagnosis?target_year=${ty}&target_month=${tm}&baseline_year=${by}&baseline_month=${bm}`),
   inventoryAge: (bizId: number) =>

@@ -26,6 +26,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from backend.app.config import settings, Settings as _Settings
 from backend.app.services import (
     profit_diagnosis_service,
     inventory_service,
@@ -33,9 +34,6 @@ from backend.app.services import (
 )
 
 logger = logging.getLogger(__name__)
-
-LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL   = os.getenv("LLM_MODEL", "gemini-2.0-flash")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -210,7 +208,13 @@ def ask(
             "evidence":      dict|None  # View Evidence payload (formula + result)
         }
     """
-    if not LLM_API_KEY:
+    # Re-read .env on every request so key changes take effect without restarting the server.
+    # _Settings is a module-level alias so tests can mock it via patch().
+    _fresh = _Settings()
+    api_key = _fresh.llm_api_key.strip()
+    model_name = os.getenv("LLM_MODEL", "gemini-3.6-flash").strip()
+
+    if not api_key:
         return {
             "response_text": (
                 "The AI Copilot requires an LLM API key. "
@@ -224,7 +228,7 @@ def ask(
         from google import genai
         from google.genai import types as genai_types
 
-        client = genai.Client(api_key=LLM_API_KEY)
+        client = genai.Client(api_key=api_key)
 
         # Build tool declarations for the new SDK
         tools = genai_types.Tool(
@@ -261,7 +265,7 @@ def ask(
 
         # Round 1: LLM may return text or a function call
         resp1 = client.models.generate_content(
-            model=LLM_MODEL,
+            model=model_name,
             contents=contents,
             config=config,
         )
@@ -298,7 +302,7 @@ def ask(
         ))
 
         resp2 = client.models.generate_content(
-            model=LLM_MODEL,
+            model=model_name,
             contents=contents,
             config=config,
         )
