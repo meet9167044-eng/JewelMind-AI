@@ -34,16 +34,18 @@ export default function ProfitPage() {
     fetchDiagnosis()
   }, [bizId, targetYear, targetMonth, baseYear, baseMonth])
 
-  const drivers = diagnosis?.driver_breakdown || {}
+  const drivers = diagnosis?.drivers || {}
   const chartData = [
-    { name: 'Volume', value: drivers.volume_effect?.impact || 0, desc: 'Sales volume change' },
-    { name: 'Discount', value: drivers.discount_effect?.impact || 0, desc: 'Discount depth shift' },
-    { name: 'Making Chg', value: drivers.making_charge_effect?.impact || 0, desc: 'Making charge rate shift' },
-    { name: 'Product Mix', value: drivers.product_mix_effect?.impact || 0, desc: 'High vs low margin category mix' },
-    { name: 'Metal Margin', value: drivers.metal_margin_effect?.impact || 0, desc: 'Raw metal cost vs selling rate' },
+    { name: 'Volume', value: drivers.volume || 0, desc: 'Sales volume change' },
+    { name: 'Discount', value: drivers.discount || 0, desc: 'Discount depth shift' },
+    { name: 'Making Chg', value: drivers.making_charge || 0, desc: 'Making charge rate shift' },
+    { name: 'Product Mix', value: drivers.product_mix || 0, desc: 'High vs low margin category mix' },
+    { name: 'Metal Margin', value: drivers.metal_margin || 0, desc: 'Raw metal cost vs selling rate' },
   ]
 
-  const totalDelta = diagnosis?.total_gross_profit_change || 0
+  const totalDelta = diagnosis?.delta_gp || 0
+  const targetProfit = diagnosis?.period_b?.gross_profit || 0
+  const baseProfit = diagnosis?.period_a?.gross_profit || 0
 
   const fmt = (n: number) => {
     const abs = Math.abs(n)
@@ -98,12 +100,12 @@ export default function ProfitPage() {
         />
         <KpiCard
           label="Target Gross Profit"
-          value={loading ? '—' : `₹${((diagnosis?.target_period_profit || 0)/1000).toFixed(1)}k`}
+          value={loading ? '—' : fmt(targetProfit)}
           accent="gold"
         />
         <KpiCard
           label="Baseline Gross Profit"
-          value={loading ? '—' : `₹${((diagnosis?.baseline_period_profit || 0)/1000).toFixed(1)}k`}
+          value={loading ? '—' : fmt(baseProfit)}
           accent="silver"
         />
       </div>

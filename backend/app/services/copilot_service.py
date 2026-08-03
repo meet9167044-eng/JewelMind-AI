@@ -212,7 +212,7 @@ def ask(
     # _Settings is a module-level alias so tests can mock it via patch().
     _fresh = _Settings()
     api_key = _fresh.llm_api_key.strip()
-    model_name = os.getenv("LLM_MODEL", "gemini-3.6-flash").strip()
+    model_name = os.getenv("LLM_MODEL", "gemini-1.5-flash").strip()
 
     if not api_key:
         return {
@@ -223,6 +223,10 @@ def ask(
             ),
             "evidence": None,
         }
+
+    if db is None:
+        from backend.app.database import SessionLocal
+        db = SessionLocal()
 
     try:
         from google import genai
@@ -292,7 +296,7 @@ def ask(
         # Round 2: send tool result, LLM writes natural-language explanation
         contents.append(resp1.candidates[0].content)          # assistant turn
         contents.append(genai_types.Content(
-            role="tool",
+            role="user",
             parts=[genai_types.Part(
                 function_response=genai_types.FunctionResponse(
                     name=t_name,
@@ -320,10 +324,14 @@ def ask(
         }
     except Exception as exc:
         logger.error("copilot_service.ask() failed: %s", exc, exc_info=True)
+        err_msg = str(exc)
+        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+            msg = "Google Gemini API rate limit reached (429 Quota Exceeded). Please wait ~1 minute before asking your next question."
+        elif "400" in err_msg or "API_KEY" in err_msg:
+            msg = f"Gemini API returned an error ({type(exc).__name__}). Please verify your LLM_API_KEY in .env."
+        else:
+            msg = f"An error occurred while calling the AI Copilot: {err_msg[:150]}"
         return {
-            "response_text": (
-                f"An error occurred while processing your question ({type(exc).__name__}). "
-                "Please verify your LLM_API_KEY in .env and try again."
-            ),
+            "response_text": msg,
             "evidence": None,
         }

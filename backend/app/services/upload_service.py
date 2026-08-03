@@ -13,13 +13,6 @@ Architecture rules:
 
 Supported dataset types: "products", "purchases", "sales"
 Supported file formats:  .csv, .xlsx, .xls
-
-Upload result includes:
-    - upload_id      (UUID, stored in-memory for quality report lookup)
-    - rows_accepted  (rows successfully inserted)
-    - rows_rejected  (rows that failed validation)
-    - warnings       (list of per-row validation messages)
-    - errors         (critical errors that aborted the whole upload)
 """
 
 import io
@@ -40,18 +33,17 @@ logger = logging.getLogger(__name__)
 DatasetType = Literal["products", "purchases", "sales"]
 
 # In-memory store for upload quality reports (keyed by upload_id)
-# In production this would be persisted to an upload_logs table.
 _UPLOAD_REPORTS: dict[str, dict] = {}
 
 # ---------------------------------------------------------------------------
-# Schema definitions: required columns + validation rules per dataset type
+# Schema definitions
 # ---------------------------------------------------------------------------
 
 PRODUCTS_REQUIRED = ["sku", "product_name", "category", "metal", "purity",
                      "gross_weight", "net_weight"]
-PURCHASES_REQUIRED = ["sku", "purchase_date", "quantity", "weight",
+PURCHASES_REQUIRED = ["purchase_date", "quantity", "weight",
                       "metal_rate", "metal_cost", "making_cost", "total_cost"]
-SALES_REQUIRED = ["sku", "sale_date", "quantity", "weight",
+SALES_REQUIRED = ["sale_date", "quantity", "weight",
                   "selling_price", "making_charge", "discount", "cost_basis"]
 
 REQUIRED_COLUMNS: dict[str, list[str]] = {
@@ -60,25 +52,88 @@ REQUIRED_COLUMNS: dict[str, list[str]] = {
     "sales":     SALES_REQUIRED,
 }
 
-# Columns that must be >= 0
-NON_NEGATIVE: dict[str, list[str]] = {
-    "products":  ["gross_weight", "net_weight"],
-    "purchases": ["quantity", "weight", "metal_rate", "metal_cost", "making_cost", "total_cost"],
-    "sales":     ["quantity", "weight", "selling_price", "making_charge", "discount", "cost_basis"],
-}
-
-# Date columns (parsed to datetime)
-DATE_COLUMNS: dict[str, list[str]] = {
-    "products":  [],
-    "purchases": ["purchase_date"],
-    "sales":     ["sale_date"],
-}
-
 VALID_CATEGORIES = {
     "chain", "necklace", "payal", "coin", "utensil",
     "ring", "bangle", "earring",
 }
 VALID_METALS = {"gold", "silver"}
+
+
+# ---------------------------------------------------------------------------
+# Smart Product Resolver for a Business
+# ---------------------------------------------------------------------------
+
+class BusinessProductResolver:
+    """
+    Resolves product references in sales/purchases CSVs to exact DB product_id.
+    Supports:
+      1. Exact SKU matching (e.g. 'DI101')
+      2. Direct DB product_id matching (e.g. 501)
+      3. Ordinal / index position matching (e.g. 1st product of this business -> 186th product)
+    """
+    def __init__(self, db: Session, business_id: int):
+        self.db = db
+        self.business_id = business_id
+        self.products: list[Product] = []
+        self.sku_to_id: dict[str, int] = {}
+        self.db_id_to_id: dict[int, int] = {}
+        self.ordinal_to_id: dict[int, int] = {}
+        self.refresh()
+
+    def refresh(self):
+        self.products = (
+            self.db.query(Product)
+            .filter(Product.business_id == self.business_id)
+            .order_by(Product.product_id.asc())
+            .all()
+        )
+        self.sku_to_id = {
+            p.sku.strip().lower(): p.product_id
+            for p in self.products
+            if p.sku
+        }
+        self.db_id_to_id = {
+            p.product_id: p.product_id
+            for p in self.products
+        }
+        self.ordinal_to_id = {
+            i + 1: p.product_id
+            for i, p in enumerate(self.products)
+        }
+
+    def resolve(self, row: pd.Series) -> int | None:
+        """Resolve a row's product using sku or product_id column."""
+        # 1. Try SKU if present
+        if "sku" in row and not pd.isna(row["sku"]):
+            sku_val = str(row["sku"]).strip().lower()
+            if sku_val in self.sku_to_id:
+                return self.sku_to_id[sku_val]
+
+        # 2. Try product_id if present
+        if "product_id" in row and not pd.isna(row["product_id"]):
+            try:
+                pid_int = int(float(row["product_id"]))
+                # Check direct DB product_id
+                if pid_int in self.db_id_to_id:
+                    return self.db_id_to_id[pid_int]
+                # Check 1-based ordinal index (common in exported datasets)
+                if pid_int in self.ordinal_to_id:
+                    return self.ordinal_to_id[pid_int]
+            except (ValueError, TypeError):
+                pass
+
+        # 3. Fallback: check if 'sku' column value was a numeric string matching ordinal or DB ID
+        if "sku" in row and not pd.isna(row["sku"]):
+            try:
+                pid_int = int(float(str(row["sku"]).strip()))
+                if pid_int in self.db_id_to_id:
+                    return self.db_id_to_id[pid_int]
+                if pid_int in self.ordinal_to_id:
+                    return self.ordinal_to_id[pid_int]
+            except (ValueError, TypeError):
+                pass
+
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -99,6 +154,10 @@ def _parse_file(content: bytes, filename: str) -> pd.DataFrame:
 def _check_required_columns(df: pd.DataFrame, dataset_type: DatasetType) -> list[str]:
     """Returns list of missing required column names."""
     required = REQUIRED_COLUMNS[dataset_type]
+    # For purchases/sales, either 'sku' OR 'product_id' must be present
+    if dataset_type in ("purchases", "sales"):
+        if "sku" not in df.columns and "product_id" not in df.columns:
+            return ["sku or product_id"] + [col for col in required if col not in df.columns]
     missing = [col for col in required if col not in df.columns]
     return missing
 
@@ -128,17 +187,17 @@ def _validate_row_products(row: pd.Series, idx: int) -> list[str]:
     return errors
 
 
-def _validate_row_purchases(row: pd.Series, idx: int,
-                             valid_skus: set[str]) -> list[str]:
+def _validate_row_purchases(row: pd.Series, idx: int, resolver: BusinessProductResolver) -> list[str]:
     """Validate a single purchases row."""
     errors = []
-    sku = str(row.get("sku", "")).strip()
-    if sku not in valid_skus:
-        errors.append(f"Row {idx}: SKU '{sku}' not found in products for this business")
+    pid = resolver.resolve(row)
+    if pid is None:
+        ref = row.get("sku") if not pd.isna(row.get("sku")) else row.get("product_id")
+        errors.append(f"Row {idx}: SKU '{ref}' not found in products for this business")
     try:
         pd.to_datetime(row["purchase_date"])
     except Exception:
-        errors.append(f"Row {idx}: 'purchase_date' is not a valid date (got '{row.get('purchase_date')}')")
+        errors.append(f"Row {idx}: 'purchase_date' is not a valid date")
     for col in ["quantity", "weight", "metal_rate", "metal_cost", "making_cost", "total_cost"]:
         try:
             val = float(row[col])
@@ -149,17 +208,17 @@ def _validate_row_purchases(row: pd.Series, idx: int,
     return errors
 
 
-def _validate_row_sales(row: pd.Series, idx: int,
-                         valid_skus: set[str]) -> list[str]:
+def _validate_row_sales(row: pd.Series, idx: int, resolver: BusinessProductResolver) -> list[str]:
     """Validate a single sales row."""
     errors = []
-    sku = str(row.get("sku", "")).strip()
-    if sku not in valid_skus:
-        errors.append(f"Row {idx}: SKU '{sku}' not found in products for this business")
+    pid = resolver.resolve(row)
+    if pid is None:
+        ref = row.get("sku") if not pd.isna(row.get("sku")) else row.get("product_id")
+        errors.append(f"Row {idx}: SKU '{ref}' not found in products for this business")
     try:
         pd.to_datetime(row["sale_date"])
     except Exception:
-        errors.append(f"Row {idx}: 'sale_date' is not a valid date (got '{row.get('sale_date')}')")
+        errors.append(f"Row {idx}: 'sale_date' is not a valid date")
     for col in ["quantity", "weight", "selling_price", "making_charge", "discount", "cost_basis"]:
         try:
             val = float(row[col])
@@ -168,14 +227,6 @@ def _validate_row_sales(row: pd.Series, idx: int,
         except (TypeError, ValueError):
             errors.append(f"Row {idx}: '{col}' is not a valid number")
     return errors
-
-
-def _get_sku_to_product_id(db: Session, business_id: int) -> dict[str, int]:
-    """Returns a dict of {sku: product_id} for the given business."""
-    rows = db.query(Product.sku, Product.product_id).filter(
-        Product.business_id == business_id
-    ).all()
-    return {row[0]: row[1] for row in rows}
 
 
 # ---------------------------------------------------------------------------
@@ -189,27 +240,6 @@ def process_upload(
     file_content: bytes,
     filename: str,
 ) -> dict[str, Any]:
-    """
-    Main entry point for the upload pipeline.
-
-    Steps:
-        1. Parse the file (CSV or Excel).
-        2. Check for required columns — abort with 400 if missing.
-        3. Validate each row, collecting row-level warnings.
-        4. Insert valid rows with business_id injected server-side.
-        5. Return an upload report.
-
-    Parameters:
-        db            — SQLAlchemy session
-        business_id   — Injected server-side (Rule 14: NEVER from the file)
-        dataset_type  — "products", "purchases", or "sales"
-        file_content  — Raw bytes of the uploaded file
-        filename      — Original filename (used to detect format)
-
-    Returns:
-        dict with: upload_id, dataset_type, rows_accepted, rows_rejected,
-                   warnings, errors, business_id
-    """
     upload_id = str(uuid.uuid4())
     report: dict[str, Any] = {
         "upload_id":    upload_id,
@@ -232,16 +262,22 @@ def process_upload(
         _UPLOAD_REPORTS[upload_id] = report
         return report
 
-    # Strip whitespace from column names
+    # Clean column names
     df.columns = [str(c).strip().lower() for c in df.columns]
 
-    # Drop any 'business_id' column the file may contain (Rule 14)
+    # Drop business_id column if present (Rule 14)
     if "business_id" in df.columns:
         df = df.drop(columns=["business_id"])
-        report["warnings"].append(
-            "Column 'business_id' was present in the file and has been ignored. "
-            "business_id is always injected server-side."
-        )
+        report["warnings"].append("Column 'business_id' was ignored; business_id is injected server-side.")
+
+    # Drop primary key IDs from file if present
+    for drop_col in ("purchase_id", "sale_id"):
+        if drop_col in df.columns:
+            df = df.drop(columns=[drop_col])
+
+    # For products dataset, drop raw product_id from file (MySQL generates DB product_id)
+    if dataset_type == "products" and "product_id" in df.columns:
+        df = df.drop(columns=["product_id"])
 
     # --- Step 2: Required columns ---
     missing_cols = _check_required_columns(df, dataset_type)
@@ -261,46 +297,107 @@ def process_upload(
         return report
 
     # --- Step 3: Validate rows ---
-    sku_to_id: dict[str, int] = {}
-    if dataset_type in ("purchases", "sales"):
-        sku_to_id = _get_sku_to_product_id(db, business_id)
+    resolver = BusinessProductResolver(db, business_id)
 
     accepted_rows = []
+    first_warnings = []
+
     for i, (_, row) in enumerate(df.iterrows(), start=1):
         if dataset_type == "products":
             row_errors = _validate_row_products(row, i)
         elif dataset_type == "purchases":
-            row_errors = _validate_row_purchases(row, i, set(sku_to_id.keys()))
+            row_errors = _validate_row_purchases(row, i, resolver)
         else:
-            row_errors = _validate_row_sales(row, i, set(sku_to_id.keys()))
+            row_errors = _validate_row_sales(row, i, resolver)
 
         if row_errors:
-            report["warnings"].extend(row_errors)
+            # Cap reported warnings at 50 to keep response fast and clean
+            if len(first_warnings) < 50:
+                first_warnings.extend(row_errors)
             report["rows_rejected"] += 1
         else:
             accepted_rows.append(row)
 
-    # --- Step 4: Insert valid rows ---
-    try:
-        for row in accepted_rows:
+    if first_warnings:
+        if report["rows_rejected"] > 50:
+            first_warnings.append(f"... and {report['rows_rejected'] - 50} more row validation errors.")
+        report["warnings"].extend(first_warnings)
+
+    # --- Step 4: Bulk Insert Valid Rows ---
+    if accepted_rows:
+        try:
             if dataset_type == "products":
-                _insert_product(db, business_id, row)
+                # Filter out existing SKUs for this business to avoid duplicates
+                existing_skus = {p.sku.strip().lower() for p in resolver.products if p.sku}
+                prod_objects = []
+                for row in accepted_rows:
+                    sku_clean = str(row["sku"]).strip()
+                    if sku_clean.lower() in existing_skus:
+                        continue  # skip duplicate SKU
+                    existing_skus.add(sku_clean.lower())
+                    prod_objects.append(Product(
+                        business_id  = business_id,
+                        sku          = sku_clean,
+                        product_name = str(row["product_name"]).strip(),
+                        category     = str(row["category"]).strip().lower(),
+                        metal        = str(row["metal"]).strip().lower(),
+                        purity       = str(row["purity"]).strip(),
+                        gross_weight = float(row["gross_weight"]),
+                        net_weight   = float(row["net_weight"]),
+                    ))
+                if prod_objects:
+                    db.add_all(prod_objects)
+                    db.commit()
+                    resolver.refresh()  # refresh resolver with newly inserted products
+
             elif dataset_type == "purchases":
-                # Refresh sku map (products just inserted may be needed)
-                sku_to_id = _get_sku_to_product_id(db, business_id)
-                _insert_purchase(db, business_id, row, sku_to_id)
-            else:
-                sku_to_id = _get_sku_to_product_id(db, business_id)
-                _insert_sale(db, business_id, row, sku_to_id)
-        db.commit()
-        report["rows_accepted"] = len(accepted_rows)
-    except Exception as exc:
-        db.rollback()
-        report["errors"].append(f"Database insert failed: {exc}")
-        report["rows_accepted"] = 0
-        report["status"] = "failed"
-        _UPLOAD_REPORTS[upload_id] = report
-        return report
+                purchase_objects = [
+                    Purchase(
+                        business_id   = business_id,
+                        product_id    = resolver.resolve(row),
+                        purchase_date = pd.to_datetime(row["purchase_date"]).to_pydatetime(),
+                        quantity      = int(float(row["quantity"])),
+                        weight        = float(row["weight"]),
+                        metal_rate    = float(row["metal_rate"]),
+                        metal_cost    = float(row["metal_cost"]),
+                        making_cost   = float(row["making_cost"]),
+                        total_cost    = float(row["total_cost"]),
+                    )
+                    for row in accepted_rows
+                    if resolver.resolve(row) is not None
+                ]
+                if purchase_objects:
+                    db.add_all(purchase_objects)
+                    db.commit()
+
+            else:  # sales
+                sale_objects = [
+                    Sale(
+                        business_id   = business_id,
+                        product_id    = resolver.resolve(row),
+                        sale_date     = pd.to_datetime(row["sale_date"]).to_pydatetime(),
+                        quantity      = int(float(row["quantity"])),
+                        weight        = float(row["weight"]),
+                        selling_price = float(row["selling_price"]),
+                        making_charge = float(row["making_charge"]),
+                        discount      = float(row["discount"]),
+                        cost_basis    = float(row["cost_basis"]),
+                    )
+                    for row in accepted_rows
+                    if resolver.resolve(row) is not None
+                ]
+                if sale_objects:
+                    db.add_all(sale_objects)
+                    db.commit()
+
+            report["rows_accepted"] = len(accepted_rows)
+        except Exception as exc:
+            db.rollback()
+            report["errors"].append(f"Database insert failed: {exc}")
+            report["rows_accepted"] = 0
+            report["status"] = "failed"
+            _UPLOAD_REPORTS[upload_id] = report
+            return report
 
     report["status"] = "completed"
     _UPLOAD_REPORTS[upload_id] = report
@@ -308,68 +405,8 @@ def process_upload(
 
 
 # ---------------------------------------------------------------------------
-# Row insertion helpers (business_id injected server-side — Rule 14)
-# ---------------------------------------------------------------------------
-
-def _insert_product(db: Session, business_id: int, row: pd.Series) -> None:
-    # Check for duplicate SKU within this business (upsert-safe: skip if exists)
-    existing = db.query(Product).filter(
-        Product.business_id == business_id,
-        Product.sku == str(row["sku"]).strip(),
-    ).first()
-    if existing:
-        return  # Skip duplicate — treat as warning (already emitted in validation)
-    db.add(Product(
-        business_id  = business_id,                         # Rule 14: server-side
-        sku          = str(row["sku"]).strip(),
-        product_name = str(row["product_name"]).strip(),
-        category     = str(row["category"]).strip().lower(),
-        metal        = str(row["metal"]).strip().lower(),
-        purity       = str(row["purity"]).strip(),
-        gross_weight = float(row["gross_weight"]),
-        net_weight   = float(row["net_weight"]),
-    ))
-
-
-def _insert_purchase(db: Session, business_id: int,
-                     row: pd.Series, sku_to_id: dict[str, int]) -> None:
-    product_id = sku_to_id[str(row["sku"]).strip()]
-    db.add(Purchase(
-        business_id  = business_id,                         # Rule 14: server-side
-        product_id   = product_id,
-        purchase_date= pd.to_datetime(row["purchase_date"]).to_pydatetime(),
-        quantity     = int(float(row["quantity"])),
-        weight       = float(row["weight"]),
-        metal_rate   = float(row["metal_rate"]),
-        metal_cost   = float(row["metal_cost"]),
-        making_cost  = float(row["making_cost"]),
-        total_cost   = float(row["total_cost"]),
-    ))
-
-
-def _insert_sale(db: Session, business_id: int,
-                 row: pd.Series, sku_to_id: dict[str, int]) -> None:
-    product_id = sku_to_id[str(row["sku"]).strip()]
-    db.add(Sale(
-        business_id  = business_id,                         # Rule 14: server-side
-        product_id   = product_id,
-        sale_date    = pd.to_datetime(row["sale_date"]).to_pydatetime(),
-        quantity     = int(float(row["quantity"])),
-        weight       = float(row["weight"]),
-        selling_price= float(row["selling_price"]),
-        making_charge= float(row["making_charge"]),
-        discount     = float(row["discount"]),
-        cost_basis   = float(row["cost_basis"]),
-    ))
-
-
-# ---------------------------------------------------------------------------
 # Public: get_quality_report
 # ---------------------------------------------------------------------------
 
 def get_quality_report(upload_id: str) -> dict[str, Any] | None:
-    """
-    Returns the stored quality report for a given upload_id.
-    Returns None if the upload_id is not found.
-    """
     return _UPLOAD_REPORTS.get(upload_id)
