@@ -22,6 +22,7 @@ Supported Tools (AI_ARCHITECTURE.md §2):
 
 import logging
 import os
+import time
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -34,6 +35,53 @@ from backend.app.services import (
 )
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Model fallback chain — tried in order on quota / availability errors
+# ---------------------------------------------------------------------------
+_MODEL_FALLBACK_CHAIN = [
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash",
+]
+
+# ---------------------------------------------------------------------------
+# Retry helper — exponential back-off for 429 / RESOURCE_EXHAUSTED
+# ---------------------------------------------------------------------------
+_MAX_RETRIES   = 3          # total attempts per model
+_RETRY_BASE_S  = 2          # seconds: 2 → 4 → 8
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    msg = str(exc)
+    return "429" in msg or "RESOURCE_EXHAUSTED" in msg or "quota" in msg.lower()
+
+
+def _generate_with_retry(client, model_name: str, contents, config):
+    """
+    Call client.models.generate_content with exponential back-off.
+    Raises the last exception if all retries are exhausted.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES):
+        try:
+            return client.models.generate_content(
+                model=model_name,
+                contents=contents,
+                config=config,
+            )
+        except Exception as exc:
+            last_exc = exc
+            if _is_quota_error(exc) and attempt < _MAX_RETRIES - 1:
+                wait = _RETRY_BASE_S * (2 ** attempt)   # 2, 4, 8 …
+                logger.warning(
+                    "Quota hit on model '%s' (attempt %d/%d). Retrying in %ds…",
+                    model_name, attempt + 1, _MAX_RETRIES, wait,
+                )
+                time.sleep(wait)
+            else:
+                raise
+    raise last_exc  # type: ignore[misc]
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -193,13 +241,13 @@ def ask(
     db: Session,
 ) -> dict[str, Any]:
     """
-    Main copilot function.
+    Main copilot function — powered by Groq (llama-3.3-70b-versatile).
 
     Flow:
       1. Build system prompt with business_name (not business_id — LLM never sees it).
-      2. Send question + tool schemas to Gemini (Round 1).
-      3. If LLM returns a function call -> execute_tool() with business_id closure.
-      4. Send tool result back to LLM (Round 2) -> LLM writes explanation.
+      2. Send question + tool schemas to Groq (Round 1).
+      3. If LLM returns a tool call → execute_tool() with business_id closure.
+      4. Send tool result back to LLM (Round 2) → LLM writes explanation.
       5. Return {response_text, evidence}.
 
     Returns:
@@ -208,18 +256,17 @@ def ask(
             "evidence":      dict|None  # View Evidence payload (formula + result)
         }
     """
-    # Re-read .env on every request so key changes take effect without restarting the server.
-    # _Settings is a module-level alias so tests can mock it via patch().
+    # Re-read .env on every request so key changes take effect without restart.
     _fresh = _Settings()
-    api_key = _fresh.llm_api_key.strip()
-    model_name = os.getenv("LLM_MODEL", "gemini-1.5-flash").strip()
+    api_key   = _fresh.llm_api_key.strip()
+    model_name = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile").strip()
 
     if not api_key:
         return {
             "response_text": (
                 "The AI Copilot requires an LLM API key. "
-                "Add LLM_API_KEY=your_gemini_key to your .env file and restart the backend. "
-                "All analytics dashboard pages remain fully functional without it."
+                "Add LLM_API_KEY=your_groq_key to your .env file. "
+                "Get a free key at https://console.groq.com/keys"
             ),
             "evidence": None,
         }
@@ -229,88 +276,76 @@ def ask(
         db = SessionLocal()
 
     try:
-        from google import genai
-        from google.genai import types as genai_types
+        from groq import Groq
 
-        client = genai.Client(api_key=api_key)
+        client = Groq(api_key=api_key)
 
-        # Build tool declarations for the new SDK
-        tools = genai_types.Tool(
-            function_declarations=[
-                genai_types.FunctionDeclaration(
-                    name=t["name"],
-                    description=t["description"],
-                    parameters=genai_types.Schema(
-                        type=genai_types.Type.OBJECT,
-                        properties={
-                            k: genai_types.Schema(
-                                type=genai_types.Type.STRING
-                                     if v.get("type") == "string"
-                                     else genai_types.Type.NUMBER,
-                                description=v.get("description", ""),
-                                enum=v.get("enum"),
-                            )
-                            for k, v in t["parameters"].get("properties", {}).items()
-                        },
-                        required=t["parameters"].get("required", []),
-                    ),
-                )
-                for t in TOOL_DEFINITIONS
-            ]
-        )
+        # ── Build Groq-compatible tool schemas (OpenAI format) ───────────────
+        groq_tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": t["name"],
+                    "description": t["description"],
+                    "parameters": t["parameters"],
+                },
+            }
+            for t in TOOL_DEFINITIONS
+        ]
 
-        config = genai_types.GenerateContentConfig(
-            system_instruction=build_system_prompt(business_name),
-            tools=[tools],
-            temperature=0.2,
-        )
+        system_msg = {"role": "system", "content": build_system_prompt(business_name)}
+        user_msg   = {"role": "user",   "content": question}
+        messages   = [system_msg, user_msg]
 
-        contents = [genai_types.Content(role="user", parts=[genai_types.Part(text=question)])]
-
-        # Round 1: LLM may return text or a function call
-        resp1 = client.models.generate_content(
+        # ── Round 1: LLM decides whether to call a tool ──────────────────────
+        resp1 = client.chat.completions.create(
             model=model_name,
-            contents=contents,
-            config=config,
+            messages=messages,
+            tools=groq_tools,
+            tool_choice="auto",
+            temperature=0.2,
+            max_tokens=1024,
         )
-        part1 = resp1.candidates[0].content.parts[0]
 
-        # Direct text (no tool needed)
-        if hasattr(part1, "text") and part1.text:
-            return {"response_text": part1.text.strip(), "evidence": None}
+        choice1 = resp1.choices[0]
 
-        # Function call
-        if not hasattr(part1, "function_call") or not part1.function_call:
+        # Direct text answer — no tool needed
+        if choice1.finish_reason == "stop":
+            return {
+                "response_text": choice1.message.content.strip(),
+                "evidence": None,
+            }
+
+        # Tool call requested
+        if choice1.finish_reason != "tool_calls" or not choice1.message.tool_calls:
             return {
                 "response_text": "I was unable to process your question. Please try rephrasing it.",
                 "evidence": None,
             }
 
-        fn     = part1.function_call
-        t_name = fn.name
-        t_args = dict(fn.args) if fn.args else {}
+        tool_call = choice1.message.tool_calls[0]
+        t_name    = tool_call.function.name
+        import json
+        t_args    = json.loads(tool_call.function.arguments or "{}")
 
         # Execute tool — business_id is a Python closure, NEVER from LLM
         evidence = execute_tool(t_name, t_args, business_id, db)
 
-        # Round 2: send tool result, LLM writes natural-language explanation
-        contents.append(resp1.candidates[0].content)          # assistant turn
-        contents.append(genai_types.Content(
-            role="user",
-            parts=[genai_types.Part(
-                function_response=genai_types.FunctionResponse(
-                    name=t_name,
-                    response={"result": evidence.get("result", {})},
-                )
-            )]
-        ))
+        # ── Round 2: send tool result, LLM writes natural-language explanation
+        messages.append(choice1.message)           # assistant turn with tool_calls
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": json.dumps(evidence.get("result", {})),
+        })
 
-        resp2 = client.models.generate_content(
+        resp2 = client.chat.completions.create(
             model=model_name,
-            contents=contents,
-            config=config,
+            messages=messages,
+            temperature=0.2,
+            max_tokens=1024,
         )
-        response_text = resp2.candidates[0].content.parts[0].text.strip()
+        response_text = resp2.choices[0].message.content.strip()
 
         return {
             "response_text": response_text,
@@ -319,19 +354,21 @@ def ask(
 
     except ImportError:
         return {
-            "response_text": "google-genai package is not installed. Run: pip install google-genai",
+            "response_text": "groq package is not installed. Run: pip install groq",
             "evidence": None,
         }
     except Exception as exc:
         logger.error("copilot_service.ask() failed: %s", exc, exc_info=True)
         err_msg = str(exc)
-        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-            msg = "Google Gemini API rate limit reached (429 Quota Exceeded). Please wait ~1 minute before asking your next question."
-        elif "400" in err_msg or "API_KEY" in err_msg:
-            msg = f"Gemini API returned an error ({type(exc).__name__}). Please verify your LLM_API_KEY in .env."
+        if "401" in err_msg or "invalid_api_key" in err_msg.lower():
+            msg = "Invalid Groq API key. Please check LLM_API_KEY in your .env file."
+        elif "429" in err_msg or "rate_limit" in err_msg.lower():
+            msg = "Groq rate limit hit. Please wait a moment and try again."
         else:
-            msg = f"An error occurred while calling the AI Copilot: {err_msg[:150]}"
+            msg = f"An error occurred while calling the AI Copilot: {err_msg[:200]}"
         return {
             "response_text": msg,
             "evidence": None,
         }
+
+

@@ -28,6 +28,7 @@ numpy>=1.26.0
 
 # HTTP utilities
 python-multipart>=0.0.9
+groq>=0.9.0
 
 # Testing
 pytest>=8.0.0
